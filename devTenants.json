@@ -1,0 +1,10 @@
+{
+  "tenant_demo": {
+    "tenantId": "tenant_demo",
+    "plan": "pro",
+    "usage": 0,
+    "stripeCustomerId": "cus_TiYqdKxm8NnB18",
+    "subscriptionState": "grace",
+    "gracePeriodEndsAt": "2099-01-01T00:00:00.000Z"
+  }
+}

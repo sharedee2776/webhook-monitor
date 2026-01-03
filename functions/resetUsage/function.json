@@ -1,0 +1,11 @@
+{
+  "scriptFile": "../../dist/src/functions/resetUsage/index.js",
+  "bindings": [
+    {
+      "name": "myTimer",
+      "type": "timerTrigger",
+      "direction": "in",
+      "schedule": "0 0 0 1 * *"
+    }
+  ]
+}
