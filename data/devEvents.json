@@ -1,0 +1,12 @@
+[
+  {
+    "eventId": "fail-123",
+    "tenantId": "tenant_demo",
+    "eventType": "subscription.test3",
+    "source": "custom",
+    "receivedAt": "2026-01-02T21:56:23.642Z",
+    "payload": {
+      "foo": "bar"
+    }
+  }
+]

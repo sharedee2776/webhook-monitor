@@ -1,0 +1,16 @@
+{
+  "scriptFile": "../../dist/src/functions/adminSetPlan.js",
+  "bindings": [
+    {
+      "authLevel": "anonymous",
+      "type": "httpTrigger",
+      "direction": "in",
+      "methods": ["post"],
+      "route": "admin/setPlan"
+    },
+    {
+      "type": "http",
+      "direction": "out"
+    }
+  ]
+}

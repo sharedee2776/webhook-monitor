@@ -1,0 +1,16 @@
+{
+  "scriptFile": "../../dist/src/functions/billingApplyPlan.js",
+  "bindings": [
+    {
+      "authLevel": "anonymous",
+      "type": "httpTrigger",
+      "direction": "in",
+      "methods": ["post"],
+      "route": "billing/apply-plan"
+    },
+    {
+      "type": "http",
+      "direction": "out"
+    }
+  ]
+}

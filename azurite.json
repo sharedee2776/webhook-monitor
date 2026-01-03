@@ -1,0 +1,7 @@
+{
+  "blobPort": 13000,
+  "blobHost": "127.0.0.1",
+  "location": ".azurite",
+  "debug": ".azurite/debug.log",
+  "silent": true
+}
