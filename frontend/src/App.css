@@ -1,0 +1,235 @@
+/* Responsive navigation bar */
+@media (max-width: 700px) {
+  nav {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    padding: 0.7rem !important;
+    font-size: 1rem !important;
+  }
+  .card {
+    padding: 0.7rem !important;
+    font-size: 0.98rem !important;
+  }
+  h1, h2 {
+    font-size: 1.1rem !important;
+  }
+}
+
+/* Responsive tables */
+@media (max-width: 700px) {
+  table, thead, tbody, th, td, tr {
+    display: block;
+    width: 100%;
+  }
+  thead tr {
+    display: none;
+  }
+  tr {
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--border);
+    background: var(--surface);
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(45,108,223,0.07);
+    padding: 0.5rem 0.7rem;
+  }
+  td {
+    text-align: left;
+    padding: 0.5rem 0.7rem;
+    position: relative;
+    font-size: 0.98rem;
+  }
+  td:before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-light);
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+}
+/* Dark mode styles */
+body.dark {
+  --primary: #90caf9;
+  --primary-dark: #1976d2;
+  --accent: #ffd54f;
+  --bg: #181a1b;
+  --surface: #23272b;
+  --border: #333a40;
+  --text: #e3e8ee;
+  --text-light: #b0b8c1;
+  --success: #66bb6a;
+  --error: #ef5350;
+  --warning: #ffa726;
+  --info: #29b6f6;
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .card {
+    padding: 1.2rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-grid {
+    gap: 1rem;
+  }
+  .card {
+    padding: 0.7rem;
+    font-size: 0.98rem;
+  }
+  h1, h2 {
+    font-size: 1.3rem;
+  }
+}
+/* Modern Custom Theme */
+:root {
+  --primary: #2d6cdf;
+  --primary-dark: #1a417a;
+  --accent: #ffb300;
+  --bg: #f7f9fb;
+  --surface: #fff;
+  --border: #e3e8ee;
+  --text: #222b45;
+  --text-light: #6b7a90;
+  --success: #4caf50;
+  --error: #e53935;
+  --warning: #ff9800;
+  --info: #2196f3;
+  font-family: 'Inter', 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-family);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--primary-dark);
+  font-weight: 700;
+  margin-bottom: 0.5em;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+a:hover {
+  color: var(--accent);
+}
+
+.card {
+  background: var(--surface);
+  border-radius: 1rem;
+  box-shadow: 0 2px 12px rgba(45, 108, 223, 0.07);
+  border: 1px solid var(--border);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  transition: box-shadow 0.2s, transform 0.18s cubic-bezier(.4,2,.6,1), border-color 0.18s;
+  cursor: pointer;
+}
+.card:hover {
+  box-shadow: 0 8px 32px rgba(45, 108, 223, 0.16);
+  transform: translateY(-4px) scale(1.015);
+  border-color: var(--primary);
+}
+
+.btn {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.18s, transform 0.18s;
+  box-shadow: 0 2px 8px rgba(45, 108, 223, 0.08);
+}
+.btn:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 4px 16px rgba(45, 108, 223, 0.13);
+  transform: translateY(-2px) scale(1.03);
+}
+.btn:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25em 0.75em;
+  border-radius: 1em;
+  font-size: 0.85em;
+  font-weight: 600;
+  background: var(--bg);
+  color: var(--primary-dark);
+  border: 1px solid var(--border);
+}
+
+.success {
+  color: var(--success);
+}
+.error {
+  color: var(--error);
+}
+.warning {
+  color: var(--warning);
+}
+.info {
+  color: var(--info);
+}
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}

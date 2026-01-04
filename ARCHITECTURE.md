@@ -1,63 +1,73 @@
+
 # Webhook Monitor — Architecture Overview
 
 ## High-Level Design
 
-- **Backend:**
-  - Azure Functions (TypeScript)
-  - Handles all API endpoints, event ingestion, billing, and admin logic
-- **Event Storage:**
-  - Dual-write: Azure Blob Storage (production) and local JSON file (dev)
-- **Billing:**
-  - Stripe integration for subscription management, checkout, and customer portal
-  - Plan enforcement and usage tracking
-- **Authentication:**
-  - API key validation for all endpoints
-  - Admin key for privileged actions
-- **Alerting:**
-  - Optional Discord webhook for system alerts
+**Frontend:**
+- React (Vite, TypeScript) SPA
+- Handles all user interaction, dashboards, authentication, and billing UI
+- Communicates with backend via REST API
+- Hosted on Azure Static Web Apps (recommended)
+
+**Backend:**
+- Azure Functions (TypeScript)
+- Handles all API endpoints: event ingestion, billing, admin, analytics, and more
+- Stripe integration for billing, plan management, and customer portal
+- Dual event storage: Azure Blob Storage (production) and local JSON (development)
+- Discord webhook integration for system alerts (optional)
+- Secure API key and admin key authentication
 
 ## Key Components
 
-- **/src/functions/**
-  - `ingestWebhook.ts`: Main webhook endpoint, deduplication, event storage
-  - `stripeWebhook.ts`: Handles Stripe webhook events (checkout, subscription, invoice)
-  - `billingCreateCheckout.ts`: Creates Stripe checkout sessions
-  - `billingCustomerPortal.ts`: Customer portal for subscription management
-  - `billingApplyPlan.ts`: Applies plans to tenants
-  - `adminSetPlan.ts`: Admin plan management
-  - `dashboardEvents.ts`: Lists stored events
-  - `alertWebhook.ts`: (Optional) Sends alerts to Discord
+**Frontend (frontend/):**
+- `src/pages/`: Home, Signup, Login, Dashboard, Checkout, PlanDetails, etc.
+- `src/components/`: Analytics charts, event lists, notifications, API key management, etc.
+- `firebase.ts`: Firebase Auth integration
+- `App.tsx`: Main app shell and routing
 
-- **/src/shared/**
-  - `eventStore.ts`: Reads/writes events to storage
-  - `usageTracker.ts`: Tracks API usage per tenant
-  - `tenantPlans.ts`, `plans.ts`: Plan logic and enforcement
-  - `validateApiKey.ts`: API key validation
+**Backend (src/functions/):**
+- `ingestWebhook.ts`: Main webhook endpoint, deduplication, event storage
+- `stripeWebhook.ts`: Handles Stripe webhook events (checkout, subscription, invoice)
+- `billingCreateCheckout.ts`: Creates Stripe checkout sessions
+- `billingCustomerPortal.ts`: Customer portal for subscription management
+- `billingApplyPlan.ts`: Applies plans to tenants
+- `adminSetPlan.ts`: Admin plan management
+- `dashboardEvents.ts`: Lists stored events
+- `alertWebhook.ts`: (Optional) Sends alerts to Discord
 
-- **/src/billing/**
-  - `stripePlans.ts`: Maps Stripe price IDs to internal plans
-  - `applyPlan.ts`: Plan application logic
-
-- **/src/services/**
-  - `billingService.ts`: Service layer for billing actions
-
-- **/src/lib/**
-  - `auth.ts`, `rateLimiter.ts`: Auth and rate limiting helpers
-
-## Planned Frontend (to be built)
-- React-based SPA (Single Page Application)
-- Pages: Home, Signup, Login, Dashboard, Billing/Subscription
-- Connects to backend APIs for authentication, event data, and billing
-- Hosted on Azure Static Web Apps or similar
+**Shared Logic (src/shared/, src/billing/, src/services/, src/lib/):**
+- Event storage, usage tracking, plan logic, API key validation, rate limiting, and more
 
 ## Data Flow
+
 1. **Event Ingestion:**
    - Client sends event to `/api/ingestWebhook`
-   - Backend deduplicates and stores event
+   - Backend deduplicates and stores event (Azure Blob Storage or local JSON)
 2. **Billing:**
    - User initiates checkout via frontend → `/api/billing/create-checkout`
    - Stripe handles payment, calls `/api/billing/stripe-webhook`
-   - Backend updates subscription/plan
+   - Backend updates subscription/plan and enforces limits
+3. **Analytics & Dashboard:**
+   - Frontend fetches usage, events, and plan info from backend APIs
+   - Real-time updates via polling or webhooks (future: SignalR or WebSockets)
+
+## Deployment
+
+- **Frontend:** Deploy to Azure Static Web Apps for global CDN, SSL, and custom domain support
+- **Backend:** Deploy Azure Functions (can be integrated with Static Web Apps or as a separate Function App)
+- **DNS:** Point your domain (e.g., webhookmonitor.shop) to Azure Static Web Apps
+- **Environment:** Update all environment variables and URLs to use your live domain before production
+
+## Security & Best Practices
+- All API endpoints require API key authentication
+- Admin endpoints require a separate admin key
+- Stripe secrets and sensitive keys are never exposed to frontend
+- HTTPS enforced via Azure Static Web Apps and Functions
+
+## Extensibility
+- Add more integrations (Slack, Zapier, etc.) via new Azure Functions
+- Add real-time features (WebSockets, SignalR) for live dashboards
+- Modular frontend and backend for easy feature expansion
 3. **Dashboard:**
    - Frontend fetches events from `/api/dashboardEvents`
 
