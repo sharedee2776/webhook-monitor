@@ -1,3 +1,4 @@
+import React from 'react';
 import UsageAnalyticsChart from '../components/UsageAnalyticsChart';
 import IntegrationsMarketplace from '../components/IntegrationsMarketplace';
 import ExportData from '../components/ExportData';
