@@ -1,0 +1,13 @@
+{
+  "name": "webhook-monitor-functions",
+  "version": "1.0.0",
+  "description": "Azure Functions for webhook monitor",
+  "scripts": {
+    "build": "echo 'Functions built in root project'",
+    "test": "echo 'No tests'"
+  },
+  "dependencies":  {},
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
