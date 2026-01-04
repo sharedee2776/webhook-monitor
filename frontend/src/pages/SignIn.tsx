@@ -1,0 +1,69 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
+
+const SignIn: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Invalid email or password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: 400, margin: '3rem auto', textAlign: 'center' }}>
+      <h2>Sign In</h2>
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: '1rem' }}>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+            style={{ width: '100%', padding: '0.5rem' }}
+          />
+        </div>
+        <div style={{ marginBottom: '1rem' }}>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+            style={{ width: '100%', padding: '0.5rem' }}
+          />
+        </div>
+        {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
+        <button type="submit" style={{ padding: '0.5rem 2rem' }} disabled={loading}>
+          {loading ? 'Signing in...' : 'Sign In'}
+        </button>
+      </form>
+      <div style={{ marginTop: '2rem' }}>
+        <p>Or sign in with:</p>
+        <button style={{ margin: '0 0.5rem', padding: '0.5rem 1rem' }} disabled>
+          Google (demo)
+        </button>
+        <button style={{ margin: '0 0.5rem', padding: '0.5rem 1rem' }} disabled>
+          GitHub (demo)
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default SignIn;
