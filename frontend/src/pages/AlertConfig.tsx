@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import apiConfig from '../config/api';
 
 const AlertConfig: React.FC = () => {
 
@@ -11,7 +12,7 @@ const AlertConfig: React.FC = () => {
   useEffect(() => {
     const apiKey = localStorage.getItem('apiKey') || '';
     if (!apiKey) return setLoading(false);
-    fetch('/api/alert/email-config', {
+    fetch(apiConfig.endpoints.alertEmailConfig, {
       headers: { 'x-api-key': apiKey }
     })
       .then(res => res.json())
@@ -32,7 +33,7 @@ const AlertConfig: React.FC = () => {
       return;
     }
     try {
-      const res = await fetch('/api/alert/email-config', {
+      const res = await fetch(apiConfig.endpoints.alertEmailConfig, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
         body: JSON.stringify({ email })

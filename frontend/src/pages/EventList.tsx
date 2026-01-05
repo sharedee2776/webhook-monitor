@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import apiConfig from '../config/api';
 import SkeletonTable from '../components/SkeletonTable';
 import { CheckCircle, WarningCircle } from '@phosphor-icons/react';
 
@@ -17,7 +18,7 @@ const EventList: React.FC = () => {
       try {
         // Optionally get API key from localStorage or context
         const apiKey = localStorage.getItem('apiKey') || '';
-        const res = await fetch('/api/dashboardEvents', {
+        const res = await fetch(apiConfig.endpoints.dashboardEvents, {
           headers: apiKey ? { 'x-api-key': apiKey } : {},
         });
         if (!res.ok) throw new Error('Failed to fetch events');

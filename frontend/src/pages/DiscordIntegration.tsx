@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import apiConfig from '../config/api';
 
 const DiscordIntegration: React.FC = () => {
   const [webhookUrl, setWebhookUrl] = useState('');
@@ -8,7 +9,7 @@ const DiscordIntegration: React.FC = () => {
     e.preventDefault();
     setSaved(false);
     try {
-      const res = await fetch('/api/discord/integration', {
+      const res = await fetch(apiConfig.endpoints.discordIntegration, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
