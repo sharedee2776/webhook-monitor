@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
+import { getAuth, type Auth, type User } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -13,6 +13,18 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
+// Create a mock auth object that prevents crashes when Firebase is not configured
+function createMockAuth(): Auth {
+  return {
+    onAuthStateChanged: (callback: (user: User | null) => void) => {
+      callback(null);
+      return () => {};
+    },
+    signOut: async () => {},
+    currentUser: null
+  } as Auth;
+}
+
 // Initialize Firebase with error handling
 let auth: Auth;
 
@@ -24,27 +36,11 @@ try {
     console.log('✅ Firebase initialized successfully');
   } else {
     console.warn('⚠️ Firebase configuration missing - authentication will be disabled');
-    // Create a mock auth object that prevents crashes
-    auth = {
-      onAuthStateChanged: (callback: (user: null) => void) => {
-        callback(null);
-        return () => {};
-      },
-      signOut: async () => {},
-      currentUser: null
-    } as Auth;
+    auth = createMockAuth();
   }
 } catch (error) {
   console.error('❌ Firebase initialization failed:', error);
-  // Create a mock auth object that prevents crashes
-  auth = {
-    onAuthStateChanged: (callback: (user: null) => void) => {
-      callback(null);
-      return () => {};
-    },
-    signOut: async () => {},
-    currentUser: null
-  } as Auth;
+  auth = createMockAuth();
 }
 
 export { auth };
