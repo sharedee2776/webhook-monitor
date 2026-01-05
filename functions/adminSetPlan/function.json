@@ -1,5 +1,5 @@
 {
-  "scriptFile": "../../dist/src/functions/adminSetPlan.js",
+  "scriptFile": "../dist/functions/adminSetPlan.js",
   "bindings": [
     {
       "authLevel": "anonymous",
