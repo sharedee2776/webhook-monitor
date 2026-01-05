@@ -38,7 +38,7 @@ export function setTenantPlan(tenantId: string, plan: Tenant["plan"], opts?: {
   gracePeriodEndsAt?: string;
 }) {
   const store = readStore();
-  const existing = store[tenantId] || {};
+  const existing: Partial<Tenant> = store[tenantId] || {};
   store[tenantId] = {
     tenantId,
     plan,
@@ -53,7 +53,7 @@ export function setTenantPlan(tenantId: string, plan: Tenant["plan"], opts?: {
 
 export function setTenantStripeCustomerId(tenantId: string, stripeCustomerId: string) {
   const store = readStore();
-  const existing = store[tenantId] || {};
+  const existing: Partial<Tenant> = store[tenantId] || {};
   store[tenantId] = {
     tenantId,
     plan: existing.plan ?? "free",
