@@ -1,5 +1,5 @@
 {
-  "scriptFile": "../dist/src/functions/billingApplyPlan.js",
+  "scriptFile": "../dist/functions/billingApplyPlan.js",
   "bindings": [
     {
       "authLevel": "anonymous",

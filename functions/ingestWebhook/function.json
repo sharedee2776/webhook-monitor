@@ -1,5 +1,5 @@
 {
-  "scriptFile": "../dist/src/functions/ingestWebhook.js",
+  "scriptFile": "../dist/functions/ingestWebhook.js",
   "bindings": [
     {
       "authLevel": "anonymous",
