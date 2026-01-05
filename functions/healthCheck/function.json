@@ -1,0 +1,16 @@
+{
+  "scriptFile": "../../dist/src/functions/healthCheck.js",
+  "bindings": [
+    {
+      "authLevel": "anonymous",
+      "type": "httpTrigger",
+      "direction": "in",
+      "methods": ["get"],
+      "route": "health"
+    },
+    {
+      "type": "http",
+      "direction": "out"
+    }
+  ]
+}

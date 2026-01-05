@@ -1,0 +1,16 @@
+{
+  "scriptFile": "../../dist/src/functions/billingCreateCheckout.js",
+  "bindings": [
+    {
+      "authLevel": "anonymous",
+      "type": "httpTrigger",
+      "direction": "in",
+      "methods": ["post"],
+      "route": "billing/create-checkout"
+    },
+    {
+      "type": "http",
+      "direction": "out"
+    }
+  ]
+}
