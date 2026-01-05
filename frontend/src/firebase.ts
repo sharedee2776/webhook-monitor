@@ -30,7 +30,7 @@ let auth: Auth;
 
 try {
   // Check if we have a valid API key
-  if (import.meta.env.VITE_FIREBASE_API_KEY && import.meta.env.VITE_FIREBASE_API_KEY !== 'undefined') {
+  if (import.meta.env.VITE_FIREBASE_API_KEY && import.meta.env.VITE_FIREBASE_API_KEY.trim() !== '') {
     const app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     console.log('✅ Firebase initialized successfully');
