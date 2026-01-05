@@ -28,7 +28,7 @@ app.http("billingCustomerPortal", {
     try {
       const session = await stripe.billingPortal.sessions.create({
         customer: tenant.stripeCustomerId,
-        return_url: process.env.PUBLIC_APP_URL || "http://localhost:3000/account",
+        return_url: process.env.PUBLIC_APP_URL || "https://webhookmonitor.shop/account",
       });
       return { status: 200, jsonBody: { url: session.url } };
     } catch (err: any) {

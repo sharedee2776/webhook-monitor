@@ -1,0 +1,35 @@
+Google Analytics (GA4) Integration:
+1. Go to https://analytics.google.com and create a new property for your site.
+2. Get your Measurement ID (looks like G-XXXXXXXXXX).
+3. Add the following script to your frontend/public/index.html before </head>:
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+<!-- End Google Analytics -->
+
+Replace G-XXXXXXXXXX with your Measurement ID.
+
+Azure Application Insights Integration:
+1. Go to https://portal.azure.com and create an Application Insights resource.
+2. Get your Instrumentation Key.
+3. Install the npm package in your frontend:
+   npm install @microsoft/applicationinsights-web
+4. Add the following to your src/App.tsx (or a suitable place):
+
+import { ApplicationInsights } from '@microsoft/applicationinsights-web';
+
+const appInsights = new ApplicationInsights({
+  config: {
+    instrumentationKey: 'YOUR_INSTRUMENTATION_KEY',
+    enableAutoRouteTracking: true
+  }
+});
+appInsights.load();
+
+Replace YOUR_INSTRUMENTATION_KEY with your key.

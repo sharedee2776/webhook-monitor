@@ -25,7 +25,7 @@ const alertStateClient = TableClient.fromConnectionString(
  */
 const ALERT_WEBHOOK_URL =
   process.env.ALERT_WEBHOOK_URL ||
-  "http://localhost:7071/api/alertWebhook";
+  "https://webhookmonitor.shop/api/alertWebhook";
 
 /**
  * Create safe RowKey (Azure Table compatible)
