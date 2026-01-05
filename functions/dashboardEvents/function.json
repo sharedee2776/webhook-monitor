@@ -1,0 +1,16 @@
+{
+  "scriptFile": "../../dist/src/functions/dashboardEvents.js",
+  "bindings": [
+    {
+      "authLevel": "anonymous",
+      "type": "httpTrigger",
+      "direction": "in",
+      "methods": ["get"],
+      "route": "dashboardEvents"
+    },
+    {
+      "type": "http",
+      "direction": "out"
+    }
+  ]
+}

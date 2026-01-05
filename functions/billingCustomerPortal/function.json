@@ -1,0 +1,16 @@
+{
+  "scriptFile": "../../dist/src/functions/billingCustomerPortal.js",
+  "bindings": [
+    {
+      "authLevel": "anonymous",
+      "type": "httpTrigger",
+      "direction": "in",
+      "methods": ["post"],
+      "route": "billing/customer-portal"
+    },
+    {
+      "type": "http",
+      "direction": "out"
+    }
+  ]
+}

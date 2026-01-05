@@ -1,0 +1,16 @@
+{
+  "scriptFile": "../../dist/src/functions/webhookEndpoints.js",
+  "bindings": [
+    {
+      "authLevel": "anonymous",
+      "type": "httpTrigger",
+      "direction": "in",
+      "methods": ["get", "post", "delete"],
+      "route": "webhook/endpoints"
+    },
+    {
+      "type": "http",
+      "direction": "out"
+    }
+  ]
+}

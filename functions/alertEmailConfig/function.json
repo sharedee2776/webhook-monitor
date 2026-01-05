@@ -1,0 +1,16 @@
+{
+  "scriptFile": "../../dist/src/functions/alertEmailConfig.js",
+  "bindings": [
+    {
+      "authLevel": "anonymous",
+      "type": "httpTrigger",
+      "direction": "in",
+      "methods": ["get", "post"],
+      "route": "alert/email-config"
+    },
+    {
+      "type": "http",
+      "direction": "out"
+    }
+  ]
+}
