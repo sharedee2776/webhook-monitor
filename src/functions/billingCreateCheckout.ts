@@ -50,12 +50,6 @@ export async function billingCreateCheckout(
     context.log('Unknown plan:', body.plan);
     return { status: 400, jsonBody: { error: "Unknown plan" } };
   }
-  
-  // Check environment variables before attempting to use Stripe
-  if (!process.env.STRIPE_SECRET_KEY) {
-    context.error('STRIPE_SECRET_KEY not configured');
-    return { status: 500, jsonBody: { error: "Stripe not configured on server" } };
-  }
 
   try {
     const stripe = getStripe();

@@ -6,6 +6,8 @@ export async function healthCheck(
 ): Promise<HttpResponseInit> {
   context.log('Health check endpoint called');
   
+  // Note: This endpoint intentionally exposes configuration status (not values)
+  // to help diagnose deployment issues. Consider securing in production.
   return {
     status: 200,
     jsonBody: {
