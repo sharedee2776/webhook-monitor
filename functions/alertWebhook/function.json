@@ -1,0 +1,16 @@
+{
+  "scriptFile": "../../dist/src/functions/alertWebhook.js",
+  "bindings": [
+    {
+      "authLevel": "anonymous",
+      "type": "httpTrigger",
+      "direction": "in",
+      "methods": ["post"],
+      "route": "alertWebhook"
+    },
+    {
+      "type": "http",
+      "direction": "out"
+    }
+  ]
+}

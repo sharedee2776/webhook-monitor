@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+const SUPPORT_EMAIL = 'damoladauda10@gmail.com';
+
 const plans = [
   { id: 'free', name: 'Free', price: 0, description: 'Free plan with limited features.' },
   { id: 'pro', name: 'Pro', price: 19, description: 'Pro plan with advanced features.' },
@@ -13,6 +15,7 @@ const Checkout: React.FC = () => {
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    
     try {
       // Get tenantId from localStorage or prompt user
       let tenantId = localStorage.getItem('tenantId') || '';
@@ -26,19 +29,52 @@ const Checkout: React.FC = () => {
         return;
       }
       
+      console.log('Attempting checkout with:', { tenantId, plan: selectedPlan });
+      
+      // First, check if API is accessible by testing health endpoint
+      try {
+        const healthCheck = await fetch('/api/health');
+        console.log('Health check status:', healthCheck.status);
+        
+        if (!healthCheck.ok) {
+          console.error('API health check failed:', healthCheck.status);
+          alert('API service is not responding. Please contact support.');
+          setLoading(false);
+          return;
+        }
+        
+        const healthData = await healthCheck.json();
+        console.log('API health data:', healthData);
+        
+        if (!healthData.environment?.stripeConfigured) {
+          alert('Stripe is not configured on the server. Please contact support.');
+          setLoading(false);
+          return;
+        }
+      } catch (healthError) {
+        console.error('Health check failed:', healthError);
+        alert('Cannot connect to API. Please try again later.');
+        setLoading(false);
+        return;
+      }
+      
+      // Now attempt the actual checkout
       const res = await fetch('/api/billing/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tenantId, plan: selectedPlan }),
       });
       
-      // Better error handling
+      console.log('Checkout response status:', res.status);
+      
       if (!res.ok) {
         const errorText = await res.text();
-        console.error('Checkout error:', errorText);
+        console.error('Checkout error response:', errorText);
         
         if (res.status === 404) {
-          alert('Checkout service is temporarily unavailable. Please try again later or contact support.');
+          alert(`Checkout service is temporarily unavailable. Please try again later or contact support at ${SUPPORT_EMAIL}`);
+        } else if (res.status === 500) {
+          alert('Server error processing checkout. Please contact support.');
         } else {
           alert(`Error: ${res.status} - ${errorText || 'Failed to start checkout'}`);
         }
@@ -47,10 +83,12 @@ const Checkout: React.FC = () => {
       }
       
       const data = await res.json();
+      console.log('Checkout data:', data);
+      
       if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl; // Redirect to Stripe Checkout
+        window.location.href = data.checkoutUrl;
       } else {
-        alert('Failed to start checkout. Please try again or contact support.');
+        alert('Failed to get checkout URL. Please try again or contact support.');
       }
     } catch (err: any) {
       console.error('Checkout error:', err);
@@ -118,8 +156,7 @@ const Checkout: React.FC = () => {
           <li><strong>Can I cancel anytime?</strong> — Yes, you can cancel or change your plan at any time from your dashboard.</li>
           <li><strong>Is my payment secure?</strong> — Yes, payments are processed securely by Stripe. We do not store your card details.</li>
           <li><strong>Will I get an invoice?</strong> — Yes, invoices are sent to your email after each payment.</li>
-          <li><strong>Need help?</strong> — <a href="mailto:damoladauda10@gmail.com" style={{ color: '#4f46e5', textDecoration: 'underline' }}>Contact support</a> or <a href="https://discord.com/users/your-discord-id" target="_blank" rel="noopener noreferrer" style={{ color: '#5865F2', textDecoration: 'underline' }}>join our Discord</a>.</li>
-                  <li><strong>Need help?</strong> — <a href="mailto:damoladauda10@gmail.com" style={{ color: '#4f46e5', textDecoration: 'underline' }}>Contact support</a> or <a href="https://discord.gg/5MnFJ9bAKR" target="_blank" rel="noopener noreferrer" style={{ color: '#5865F2', textDecoration: 'underline' }}>join our Discord</a>.</li>
+          <li><strong>Need help?</strong> — <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: '#4f46e5', textDecoration: 'underline' }}>Contact support</a> or <a href="https://discord.gg/5MnFJ9bAKR" target="_blank" rel="noopener noreferrer" style={{ color: '#5865F2', textDecoration: 'underline' }}>join our Discord</a>.</li>
         </ul>
       </div>
       {/* Secure Payment Badges and Legal Links */}

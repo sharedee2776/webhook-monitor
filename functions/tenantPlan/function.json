@@ -1,0 +1,16 @@
+{
+  "scriptFile": "../../dist/src/functions/tenantPlan.js",
+  "bindings": [
+    {
+      "authLevel": "anonymous",
+      "type": "httpTrigger",
+      "direction": "in",
+      "methods": ["get"],
+      "route": "tenant/plan"
+    },
+    {
+      "type": "http",
+      "direction": "out"
+    }
+  ]
+}

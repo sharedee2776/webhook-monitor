@@ -1,0 +1,16 @@
+{
+  "scriptFile": "../../dist/src/functions/stripeWebhook.js",
+  "bindings": [
+    {
+      "authLevel": "anonymous",
+      "type": "httpTrigger",
+      "direction": "in",
+      "methods": ["post"],
+      "route": "billing/stripe-webhook"
+    },
+    {
+      "type": "http",
+      "direction": "out"
+    }
+  ]
+}
