@@ -18,7 +18,20 @@ const SignIn: React.FC = () => {
       await signInWithEmailAndPassword(auth, email, password);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Invalid email or password');
+      console.error('Sign in error:', err);
+      
+      // User-friendly error messages
+      if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+        setError('Invalid email or password. Please try again.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Too many failed attempts. Please try again later.');
+      } else if (err.code === 'auth/network-request-failed') {
+        setError('Network error. Please check your internet connection.');
+      } else if (err.message && err.message.includes('getRecaptchaConfig')) {
+        setError('Authentication service is temporarily unavailable. Please try again in a few moments.');
+      } else {
+        setError(err.message || 'Sign in failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
