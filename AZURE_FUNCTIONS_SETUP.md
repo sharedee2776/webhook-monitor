@@ -126,7 +126,22 @@ GitHub Actions will automatically deploy the Functions app.
 
 ## Step 8: Update Frontend
 
-The frontend is already configured to use the Functions app URL via environment variables. The GitHub Actions workflow will automatically deploy the updated frontend configuration.
+The frontend is already configured to use the Functions app URL via environment variables. 
+
+To configure environment variables for your deployment:
+
+1. **For Production:**
+   - Copy `frontend/.env.production.example` to `frontend/.env.production`
+   - Update `VITE_API_BASE_URL` if using a different Functions app name
+   - Fill in your actual Firebase configuration values
+   - The `.env.production` file is gitignored to protect secrets
+
+2. **For Local Development:**
+   - Copy `frontend/.env.development.example` to `frontend/.env.development`
+   - Update `VITE_API_BASE_URL` to point to your local Functions (default: http://localhost:7071)
+   - Fill in your Firebase configuration values
+
+The GitHub Actions workflow will automatically deploy the updated frontend configuration.
 
 ## Troubleshooting
 
