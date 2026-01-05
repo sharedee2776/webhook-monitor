@@ -5,7 +5,6 @@ local.settings.json
 test
 tsconfig.json
 *.ts
-src
 .DS_Store
 .funcignore
 package-lock.json
