@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import apiConfig from '../config/api';
 
 const SUPPORT_EMAIL = 'damoladauda10@gmail.com';
 
@@ -33,7 +34,7 @@ const Checkout: React.FC = () => {
       
       // First, check if API is accessible by testing health endpoint
       try {
-        const healthCheck = await fetch('/api/health');
+        const healthCheck = await fetch(apiConfig.endpoints.health);
         console.log('Health check status:', healthCheck.status);
         
         if (!healthCheck.ok) {
@@ -59,7 +60,7 @@ const Checkout: React.FC = () => {
       }
       
       // Now attempt the actual checkout
-      const res = await fetch('/api/billing/create-checkout', {
+      const res = await fetch(apiConfig.endpoints.createCheckout, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tenantId, plan: selectedPlan }),
