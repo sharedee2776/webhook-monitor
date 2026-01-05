@@ -5,9 +5,9 @@ local.settings.json
 test
 tsconfig.json
 *.ts
-src
 .DS_Store
 .funcignore
 package-lock.json
 getting_started.md
 *.md
+README.md
