@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, GithubAuthProvider } from 'firebase/auth';
 import { auth } from '../firebase';
 
 const SignIn: React.FC = () => {
@@ -31,6 +31,50 @@ const SignIn: React.FC = () => {
         setError('Authentication service is temporarily unavailable. Please try again in a few moments.');
       } else {
         setError(err.message || 'Sign in failed. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      navigate('/dashboard');
+    } catch (err: any) {
+      console.error('Google sign-in error:', err);
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError('Sign-in cancelled. Please try again.');
+      } else if (err.code === 'auth/network-request-failed') {
+        setError('Network error. Please check your internet connection.');
+      } else {
+        setError('Google sign-in failed. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGitHubSignIn = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const provider = new GithubAuthProvider();
+      await signInWithPopup(auth, provider);
+      navigate('/dashboard');
+    } catch (err: any) {
+      console.error('GitHub sign-in error:', err);
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError('Sign-in cancelled. Please try again.');
+      } else if (err.code === 'auth/account-exists-with-different-credential') {
+        setError('An account already exists with this email using a different sign-in method.');
+      } else if (err.code === 'auth/network-request-failed') {
+        setError('Network error. Please check your internet connection.');
+      } else {
+        setError('GitHub sign-in failed. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -68,11 +112,35 @@ const SignIn: React.FC = () => {
       </form>
       <div style={{ marginTop: '2rem' }}>
         <p>Or sign in with:</p>
-        <button style={{ margin: '0 0.5rem', padding: '0.5rem 1rem' }} disabled>
-          Google (demo)
+        <button 
+          onClick={handleGoogleSignIn} 
+          disabled={loading}
+          style={{ 
+            margin: '0 0.5rem', 
+            padding: '0.5rem 1rem',
+            backgroundColor: '#4285f4',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: loading ? 'not-allowed' : 'pointer'
+          }}
+        >
+          🔴 Google
         </button>
-        <button style={{ margin: '0 0.5rem', padding: '0.5rem 1rem' }} disabled>
-          GitHub (demo)
+        <button 
+          onClick={handleGitHubSignIn}
+          disabled={loading}
+          style={{ 
+            margin: '0 0.5rem', 
+            padding: '0.5rem 1rem',
+            backgroundColor: '#24292e',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: loading ? 'not-allowed' : 'pointer'
+          }}
+        >
+          ⚫ GitHub
         </button>
       </div>
     </div>
