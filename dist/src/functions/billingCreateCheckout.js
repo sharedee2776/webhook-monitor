@@ -6,13 +6,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.billingCreateCheckout = billingCreateCheckout;
 const functions_1 = require("@azure/functions");
 const stripe_1 = __importDefault(require("stripe"));
-const stripe = new stripe_1.default(process.env.STRIPE_SECRET_KEY || '', {
-    apiVersion: "2025-12-15.clover",
-});
-const PRICE_MAP = {
-    pro: process.env.PRO_PRICE_ID || '',
-    team: process.env.TEAM_PRICE_ID || '',
-};
+// Lazy initialization to avoid errors when env vars are missing at load time
+function getStripe() {
+    if (!process.env.STRIPE_SECRET_KEY) {
+        throw new Error('STRIPE_SECRET_KEY not configured');
+    }
+    return new stripe_1.default(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: "2025-12-15.clover",
+    });
+}
+function getPriceId(plan) {
+    const PRICE_MAP = {
+        pro: process.env.PRO_PRICE_ID || '',
+        team: process.env.TEAM_PRICE_ID || '',
+    };
+    return PRICE_MAP[plan] || '';
+}
 async function billingCreateCheckout(req, context) {
     context.log('billingCreateCheckout called');
     // Log environment variable status (without exposing values)
@@ -26,16 +35,18 @@ async function billingCreateCheckout(req, context) {
         context.log('Missing required fields:', { tenantId: !!body?.tenantId, plan: !!body?.plan });
         return { status: 400, jsonBody: { error: "tenantId and plan required" } };
     }
-    const priceId = PRICE_MAP[body.plan];
+    const priceId = getPriceId(body.plan);
     if (!priceId) {
         context.log('Unknown plan:', body.plan);
         return { status: 400, jsonBody: { error: "Unknown plan" } };
     }
+    // Check environment variables before attempting to use Stripe
     if (!process.env.STRIPE_SECRET_KEY) {
         context.error('STRIPE_SECRET_KEY not configured');
         return { status: 500, jsonBody: { error: "Stripe not configured on server" } };
     }
     try {
+        const stripe = getStripe();
         const session = await stripe.checkout.sessions.create({
             mode: "subscription",
             line_items: [{ price: priceId, quantity: 1 }],
