@@ -15,5 +15,19 @@
     "id": "Microsoft.Azure.Functions.ExtensionBundle",
     "version": "[4.*, 5.0.0)"
   },
-  "functionTimeout": "00:05:00"
+  "functionTimeout": "00:05:00",
+  "extensions": {
+    "http": {
+      "routePrefix": "api"
+    }
+  },
+  "cors": {
+    "allowedOrigins": [
+      "https://webhookmonitor.shop",
+      "https://calm-water-07b742603.2.azurestaticapps.net",
+      "http://localhost:5173",
+      "http://localhost:3000"
+    ],
+    "supportCredentials": true
+  }
 }

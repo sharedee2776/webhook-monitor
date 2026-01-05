@@ -2,6 +2,13 @@
 node_modules/
 local.settings.json
 .env
+.env.local
+.env.production
+.env.development
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+frontend/.env.development
 scripts/devApiKeys.json
 dist/
 functions/dist/
