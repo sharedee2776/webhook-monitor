@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import apiConfig from '../config/api';
 
 
 const AuditLogs: React.FC = () => {
@@ -7,7 +8,7 @@ const AuditLogs: React.FC = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('/api/audit-logs')
+    fetch(apiConfig.endpoints.auditLogs)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch audit logs');
         return res.json();

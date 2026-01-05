@@ -1,4 +1,5 @@
 import React from 'react';
+import apiConfig from '../config/api';
 import UsageAnalyticsChart from '../components/UsageAnalyticsChart';
 import IntegrationsMarketplace from '../components/IntegrationsMarketplace';
 import ExportData from '../components/ExportData';
@@ -29,7 +30,7 @@ const Dashboard: React.FC = () => {
       setLoadingPlan(false);
       return;
     }
-    fetch('/api/tenant/plan?tenantId=' + encodeURIComponent(tenantId))
+    fetch(`${apiConfig.endpoints.tenantPlan}?tenantId=${encodeURIComponent(tenantId)}`)
       .then(res => res.json())
       .then(data => setPlan(data.plan))
       .catch(() => setPlanError('Could not load plan details.'))
