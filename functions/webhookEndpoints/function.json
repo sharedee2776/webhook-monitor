@@ -1,5 +1,5 @@
 {
-  "scriptFile": "../../dist/src/functions/webhookEndpoints.js",
+  "scriptFile": "../dist/src/functions/webhookEndpoints.js",
   "bindings": [
     {
       "authLevel": "anonymous",

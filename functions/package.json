@@ -2,11 +2,11 @@
   "name": "webhook-monitor-functions",
   "version": "1.0.0",
   "description": "Azure Functions for webhook monitor",
-  "main": "../dist/src/functions/*.js",
+  "main": "dist/src/functions/*.js",
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "clean": "rimraf ../dist",
+    "clean": "rimraf dist",
     "prebuild": "npm run clean",
     "prestart": "npm run build",
     "start": "func start"
