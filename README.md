@@ -3,6 +3,73 @@
 
 Webhook Monitor is a full-stack SaaS platform for monitoring, analyzing, and managing webhook events with real-time analytics, robust billing, and user-friendly dashboards. Built with React (Vite, TypeScript) for the frontend and Azure Functions (TypeScript) for the backend, it is designed for reliability, scalability, and ease of use.
 
+## Setup & Installation
+
+1. **Clone the repository:**
+    ```bash
+    git clone https://github.com/sharedee2776/webhook-monitor.git
+    cd webhook-monitor
+    ```
+
+2. **Install dependencies:**
+    - Backend:
+       ```bash
+       npm install
+       ```
+    - Frontend:
+       ```bash
+       cd frontend
+       npm install
+       ```
+
+3. **Configure environment variables:**
+    - Set secrets in Azure Portal for production (see below for required variables)
+    - For local development, update `local.settings.json` and `.env` files as needed
+
+4. **Build and run locally:**
+    - Backend:
+       ```bash
+       npm run build
+       func start
+       ```
+    - Frontend:
+       ```bash
+       cd frontend
+       npm run build
+       npm run dev
+       ```
+
+## Required Environment Variables
+
+See `ARCHITECTURE.md` for a full list of required secrets and environment variables for both frontend and backend.
+
+## Deployment
+
+1. Push to main branch to trigger Azure Static Web Apps deployment.
+2. Ensure all secrets are set in Azure Portal (not in code).
+3. Monitor build and deployment status in Azure Portal.
+
+## API Endpoints (Template)
+
+| Endpoint                      | Method | Description                       |
+|-------------------------------|--------|-----------------------------------|
+| /api/alert/email-config       | GET/POST | Manage alert email config         |
+| /api/alertWebhook            | POST   | Ingest alert webhook              |
+| /api/billing/apply-plan       | POST   | Apply billing plan                |
+| /api/billing/create-checkout  | POST   | Create Stripe checkout session    |
+| /api/billing/customer-portal  | POST   | Access Stripe customer portal     |
+| /api/dashboardEvents          | GET    | List dashboard events             |
+| /api/discord/integration      | GET/POST | Discord integration              |
+| /api/ingestWebhook            | POST   | Ingest webhook event              |
+| /api/setPlanAdmin             | POST   | Admin set plan                    |
+| /api/billing/stripe-webhook   | POST   | Stripe webhook events             |
+| /api/tenant/plan              | GET    | Get tenant plan                   |
+| /api/webhook/endpoints        | GET/POST/DELETE | Manage webhook endpoints |
+
+## Architecture Diagram
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for a high-level diagram and flowchart.
+
 ## Features
 
 ### Frontend (React + Vite)

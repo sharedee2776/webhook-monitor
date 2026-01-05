@@ -19,6 +19,77 @@
 
 ## Key Components
 
+## Required Environment Variables
+
+**Backend (Azure Functions):**
+- AzureWebJobsStorage
+- AZURE_STORAGE_CONNECTION_STRING
+- ADMIN_KEY
+- DISCORD_WEBHOOK_URL
+- STRIPE_SECRET_KEY
+- STRIPE_WEBHOOK_SECRET
+- PRO_PRICE_ID
+- TEAM_PRICE_ID
+- PUBLIC_APP_URL
+- STRIPE_MODE
+- BILLING_ENABLED
+
+**Frontend (Vite/React):**
+- VITE_FIREBASE_API_KEY
+- VITE_FIREBASE_AUTH_DOMAIN
+- VITE_FIREBASE_PROJECT_ID
+- VITE_FIREBASE_STORAGE_BUCKET
+- VITE_FIREBASE_MESSAGING_SENDER_ID
+- VITE_FIREBASE_APP_ID
+- VITE_FIREBASE_MEASUREMENT_ID
+
+## Deployment Steps
+1. Set all required secrets in Azure Portal (never commit secrets to code).
+2. Push code to main branch to trigger Azure Static Web Apps deployment.
+3. Monitor build and deployment status in Azure Portal.
+4. Test endpoints and UI after deployment.
+
+## Architecture Flowchart (ASCII)
+
+```
+    +-------------------+
+    |   User Browser    |
+    +-------------------+
+        |
+        v
+    +-------------------+
+    |  Frontend (SPA)   |
+    | React + Vite      |
+    +-------------------+
+        |
+        v
+    +-------------------+
+    |  Azure Static Web |
+    |      Apps         |
+    +-------------------+
+        |
+        v
+    +-------------------+
+    |  Backend (API)    |
+    | Azure Functions   |
+    +-------------------+
+        |
+    +--------+--------+
+    |                 |
+    v                 v
+ +----------------+  +-------------------+
+ | Azure Blob     |  | Stripe Billing    |
+ | Storage        |  | & Customer Portal |
+ +----------------+  +-------------------+
+    |
+    v
+ +----------------+
+ | Discord Alerts |
+ +----------------+
+```
+
+This diagram shows the flow from user interaction, through the SPA, to backend APIs, and onward to storage, billing, and alerting integrations.
+
 **Frontend (frontend/):**
 - `src/pages/`: Home, Signup, Login, Dashboard, Checkout, PlanDetails, etc.
 - `src/components/`: Analytics charts, event lists, notifications, API key management, etc.
