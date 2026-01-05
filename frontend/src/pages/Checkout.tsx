@@ -25,19 +25,36 @@ const Checkout: React.FC = () => {
         setLoading(false);
         return;
       }
+      
       const res = await fetch('/api/billing/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tenantId, plan: selectedPlan }),
       });
+      
+      // Better error handling
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Checkout error:', errorText);
+        
+        if (res.status === 404) {
+          alert('Checkout service is temporarily unavailable. Please try again later or contact support.');
+        } else {
+          alert(`Error: ${res.status} - ${errorText || 'Failed to start checkout'}`);
+        }
+        setLoading(false);
+        return;
+      }
+      
       const data = await res.json();
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl; // Redirect to Stripe Checkout
       } else {
-        alert('Failed to start checkout.');
+        alert('Failed to start checkout. Please try again or contact support.');
       }
-    } catch (err) {
-      alert('Error starting checkout.');
+    } catch (err: any) {
+      console.error('Checkout error:', err);
+      alert('Unable to connect to checkout service. Please check your internet connection and try again.');
     } finally {
       setLoading(false);
     }
