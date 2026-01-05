@@ -24,8 +24,5 @@
     ".js": "text/javascript",
     ".css": "text/css",
     ".html": "text/html"
-  },
-  "globalHeaders": {
-    "cache-control": "public, max-age=3600"
   }
 }
