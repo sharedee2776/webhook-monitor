@@ -38,17 +38,7 @@ try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     
-    // IMPORTANT: Disable reCAPTCHA verification for development/testing
-    // This prevents the "getRecaptchaConfig is not a function" error
-    // TODO: Enable proper reCAPTCHA in production by configuring Firebase Console
-    if (typeof window !== 'undefined') {
-      // @ts-ignore - Firebase internal setting
-      auth.settings = auth.settings || {};
-      // @ts-ignore
-      auth.settings.appVerificationDisabledForTesting = true;
-    }
-    
-    console.log('✅ Firebase initialized successfully (reCAPTCHA disabled for testing)');
+    console.log('✅ Firebase initialized successfully');
   } else {
     console.warn('⚠️ Firebase configuration missing - authentication will be disabled');
     auth = createMockAuth();
