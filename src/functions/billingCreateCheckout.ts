@@ -1,19 +1,28 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: "2025-12-15.clover",
 });
 
 const PRICE_MAP: Record<string, string> = {
-  pro: process.env.PRO_PRICE_ID!,
-  team: process.env.TEAM_PRICE_ID!,
+  pro: process.env.PRO_PRICE_ID || '',
+  team: process.env.TEAM_PRICE_ID || '',
 };
 
 export async function billingCreateCheckout(
   req: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
+  
+  context.log('billingCreateCheckout called');
+  
+  // Log environment variable status (without exposing values)
+  context.log('Environment check:', {
+    stripeKeyPresent: !!process.env.STRIPE_SECRET_KEY,
+    proPriceIdPresent: !!process.env.PRO_PRICE_ID,
+    teamPriceIdPresent: !!process.env.TEAM_PRICE_ID
+  });
 
   interface CheckoutBody {
     tenantId: string;
@@ -23,29 +32,46 @@ export async function billingCreateCheckout(
   const body = (await req.json().catch(() => null)) as Partial<CheckoutBody> | null;
 
   if (!body?.tenantId || !body?.plan) {
+    context.log('Missing required fields:', { tenantId: !!body?.tenantId, plan: !!body?.plan });
     return { status: 400, jsonBody: { error: "tenantId and plan required" } };
   }
 
   const priceId = PRICE_MAP[body.plan];
   if (!priceId) {
+    context.log('Unknown plan:', body.plan);
     return { status: 400, jsonBody: { error: "Unknown plan" } };
   }
+  
+  if (!process.env.STRIPE_SECRET_KEY) {
+    context.error('STRIPE_SECRET_KEY not configured');
+    return { status: 500, jsonBody: { error: "Stripe not configured on server" } };
+  }
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: "https://webhookmonitor.shop/success",
-    cancel_url: "https://webhookmonitor.shop/cancel",
-    metadata: {
-      tenantId: body.tenantId,
-      plan: body.plan,
-    },
-  });
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: "https://webhookmonitor.shop/success",
+      cancel_url: "https://webhookmonitor.shop/cancel",
+      metadata: {
+        tenantId: body.tenantId,
+        plan: body.plan,
+      },
+    });
 
-  return {
-    status: 200,
-    jsonBody: { checkoutUrl: session.url },
-  };
+    context.log('Checkout session created:', session.id);
+
+    return {
+      status: 200,
+      jsonBody: { checkoutUrl: session.url },
+    };
+  } catch (error: any) {
+    context.error('Stripe error:', error.message);
+    return {
+      status: 500,
+      jsonBody: { error: "Failed to create checkout session", details: error.message }
+    };
+  }
 }
 
 app.http("billingCreateCheckout", {
