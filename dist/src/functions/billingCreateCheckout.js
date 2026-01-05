@@ -25,8 +25,8 @@ async function billingCreateCheckout(req, context) {
     const session = await stripe.checkout.sessions.create({
         mode: "subscription",
         line_items: [{ price: priceId, quantity: 1 }],
-        success_url: "http://localhost:3000/success",
-        cancel_url: "http://localhost:3000/cancel",
+        success_url: "https://webhookmonitor.shop/success",
+        cancel_url: "https://webhookmonitor.shop/cancel",
         metadata: {
             tenantId: body.tenantId,
             plan: body.plan,

@@ -25,11 +25,10 @@ function App() {
       const appInsights = new ApplicationInsights({
         config: {
           instrumentationKey: '33805546-a5b2-4a00-993c-d40296a94abe',
-          enableAutoRouteTracking: true,
-          ingestionEndpoint: 'https://westeurope-5.in.applicationinsights.azure.com/'
+          enableAutoRouteTracking: true
         }
       });
-      appInsights.load();
+      appInsights.loadAppInsights();
     }, []);
   const [user, setUser] = useState<User | null>(null);
   useEffect(() => {
