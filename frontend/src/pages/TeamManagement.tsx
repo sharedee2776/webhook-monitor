@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 
 const TeamManagement: React.FC = () => {
-  // Dummy team data
+  // Show only the real owner
   const [team, setTeam] = useState([
-    { id: 1, name: 'Alice', role: 'Owner' },
-    { id: 2, name: 'Bob', role: 'Member' },
+    { id: 1, name: 'ADEDAMOLA DAUDA', role: 'Owner' },
   ]);
   const [inviteEmail, setInviteEmail] = useState('');
 

@@ -118,7 +118,7 @@ export async function ingestWebhook(
         jsonBody: {
           error: `Subscription is ${tenant.subscriptionState}`,
           plan: plan.name,
-          upgradeUrl: "https://example.com/upgrade",
+          upgradeUrl: "https://webhookmonitor.shop/upgrade",
         },
       };
     }
@@ -129,7 +129,7 @@ export async function ingestWebhook(
           jsonBody: {
             error: "Grace period ended",
             plan: plan.name,
-            upgradeUrl: "https://example.com/upgrade",
+            upgradeUrl: "https://webhookmonitor.shop/upgrade",
           },
         };
       }
@@ -140,7 +140,7 @@ export async function ingestWebhook(
         jsonBody: {
           error: "Subscription expired",
           plan: plan.name,
-          upgradeUrl: "https://example.com/upgrade",
+          upgradeUrl: "https://webhookmonitor.shop/upgrade",
         },
       };
     }
@@ -164,7 +164,7 @@ export async function ingestWebhook(
         jsonBody: {
           error: "Usage limit exceeded",
           plan: plan.name,
-          upgradeUrl: "https://example.com/upgrade",
+          upgradeUrl: "https://webhookmonitor.shop/upgrade",
         },
       };
     }

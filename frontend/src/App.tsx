@@ -14,12 +14,23 @@ import PlanDetails from './pages/PlanDetails';
 import UserProfileMenu from './components/UserProfileMenu';
 import './App.css';
 import { useEffect, useState } from 'react';
+import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 import { auth } from './firebase';
 import type { User } from 'firebase/auth';
 import DarkModeToggle from './components/DarkModeToggle';
 
 
 function App() {
+    useEffect(() => {
+      const appInsights = new ApplicationInsights({
+        config: {
+          instrumentationKey: '33805546-a5b2-4a00-993c-d40296a94abe',
+          enableAutoRouteTracking: true,
+          ingestionEndpoint: 'https://westeurope-5.in.applicationinsights.azure.com/'
+        }
+      });
+      appInsights.load();
+    }, []);
   const [user, setUser] = useState<User | null>(null);
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {

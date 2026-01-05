@@ -16,6 +16,7 @@ import AlertConfig from './AlertConfig';
 import DiscordIntegration from './DiscordIntegration';
 import { ChartBar, Key, Bell, Users, DiscordLogo, MagnifyingGlass, ArrowClockwise, ListChecks, LockKey, Info } from '@phosphor-icons/react';
 import AuditLogs from '../components/AuditLogs';
+import UptimeRobotStatus from '../components/UptimeRobotStatus';
 
 const Dashboard: React.FC = () => {
   const [plan, setPlan] = React.useState<string | null>(null);
@@ -36,6 +37,7 @@ const Dashboard: React.FC = () => {
   }, []);
   return (
     <div style={{ maxWidth: 1100, margin: '3rem auto', padding: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <UptimeRobotStatus />
       <div className="card" style={{ textAlign: 'center', background: 'linear-gradient(90deg, #f8fafc 60%, #e0e7ff 100%)', border: '1px solid #e0e7ff', boxShadow: '0 2px 8px rgba(100,108,255,0.07)' }}>
         <h2 style={{ fontSize: '1.7rem', marginBottom: 8, color: 'var(--primary)' }}><LockKey size={28} style={{verticalAlign:'middle',marginRight:8}}/> Subscription Status</h2>
         {loadingPlan && <div>Loading plan...</div>}
