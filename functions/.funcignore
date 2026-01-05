@@ -10,4 +10,3 @@ tsconfig.json
 package-lock.json
 getting_started.md
 *.md
-README.md
