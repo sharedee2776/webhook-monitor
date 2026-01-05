@@ -1,0 +1,20 @@
+{
+  "name": "webhook-monitor-functions",
+  "version": "1.0.0",
+  "description": "Azure Functions for webhook monitor",
+  "scripts": {
+    "build": "cd .. && npm run build",
+    "prestart": "npm run build",
+    "start": "func start"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.10.0",
+    "@azure/data-tables": "^13.3.2",
+    "@azure/storage-blob": "^12.15.0",
+    "dotenv": "^17.2.3",
+    "stripe": "^20.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
