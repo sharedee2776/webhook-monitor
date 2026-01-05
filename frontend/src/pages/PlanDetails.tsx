@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import apiConfig from '../config/api';
 
 const PlanDetails: React.FC = () => {
   const [plan, setPlan] = useState<string | null>(null);
@@ -13,7 +14,7 @@ const PlanDetails: React.FC = () => {
       setLoading(false);
       return;
     }
-    fetch('/api/tenant/plan?tenantId=' + encodeURIComponent(tenantId))
+    fetch(`${apiConfig.endpoints.tenantPlan}?tenantId=${encodeURIComponent(tenantId)}`)
       .then(res => res.json())
       .then(data => setPlan(data.plan))
       .catch(() => setError('Could not load plan details.'))

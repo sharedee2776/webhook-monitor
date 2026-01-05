@@ -18,6 +18,9 @@ export const apiConfig = {
     alertWebhook: `${API_BASE_URL}/api/alert/webhook`,
     alertEmailConfig: `${API_BASE_URL}/api/alert/email-config`,
     tenantPlan: `${API_BASE_URL}/api/tenant/plan`,
+    auditLogs: `${API_BASE_URL}/api/audit-logs`,
+    webhookEndpoints: `${API_BASE_URL}/api/webhook/endpoints`,
+    discordIntegration: `${API_BASE_URL}/api/discord/integration`,
   }
 };
 

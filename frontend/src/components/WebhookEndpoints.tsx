@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import apiConfig from '../config/api';
 
 
 const WebhookEndpoints: React.FC = () => {
@@ -13,7 +14,7 @@ const WebhookEndpoints: React.FC = () => {
 
   useEffect(() => {
     if (!apiKey) return setLoading(false);
-    fetch('/api/webhook/endpoints', {
+    fetch(apiConfig.endpoints.webhookEndpoints, {
       headers: { 'x-api-key': apiKey }
     })
       .then(res => res.json())
@@ -27,7 +28,7 @@ const WebhookEndpoints: React.FC = () => {
     setError('');
     if (!name || !url) return;
     try {
-      const res = await fetch('/api/webhook/endpoints', {
+      const res = await fetch(apiConfig.endpoints.webhookEndpoints, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
         body: JSON.stringify({ name, url, active: true })
@@ -50,7 +51,7 @@ const WebhookEndpoints: React.FC = () => {
   const removeEndpoint = async (id: number) => {
     setError('');
     try {
-      const res = await fetch('/api/webhook/endpoints', {
+      const res = await fetch(apiConfig.endpoints.webhookEndpoints, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
         body: JSON.stringify({ id })
