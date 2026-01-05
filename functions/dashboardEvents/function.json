@@ -1,5 +1,5 @@
 {
-  "scriptFile": "../../dist/src/functions/dashboardEvents.js",
+  "scriptFile": "../dist/functions/dashboardEvents.js",
   "bindings": [
     {
       "authLevel": "anonymous",

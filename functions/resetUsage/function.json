@@ -1,5 +1,5 @@
 {
-  "scriptFile": "../../dist/src/functions/resetUsage/index.js",
+  "scriptFile": "../dist/functions/resetUsage/index.js",
   "bindings": [
     {
       "authLevel": "function",
