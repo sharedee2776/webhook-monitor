@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+const SUPPORT_EMAIL = 'damoladauda10@gmail.com';
+
 const plans = [
   { id: 'free', name: 'Free', price: 0, description: 'Free plan with limited features.' },
   { id: 'pro', name: 'Pro', price: 19, description: 'Pro plan with advanced features.' },
@@ -70,7 +72,7 @@ const Checkout: React.FC = () => {
         console.error('Checkout error response:', errorText);
         
         if (res.status === 404) {
-          alert('Checkout service is temporarily unavailable. Please try again later or contact support at damoladauda10@gmail.com');
+          alert(`Checkout service is temporarily unavailable. Please try again later or contact support at ${SUPPORT_EMAIL}`);
         } else if (res.status === 500) {
           alert('Server error processing checkout. Please contact support.');
         } else {
@@ -154,8 +156,7 @@ const Checkout: React.FC = () => {
           <li><strong>Can I cancel anytime?</strong> — Yes, you can cancel or change your plan at any time from your dashboard.</li>
           <li><strong>Is my payment secure?</strong> — Yes, payments are processed securely by Stripe. We do not store your card details.</li>
           <li><strong>Will I get an invoice?</strong> — Yes, invoices are sent to your email after each payment.</li>
-          <li><strong>Need help?</strong> — <a href="mailto:damoladauda10@gmail.com" style={{ color: '#4f46e5', textDecoration: 'underline' }}>Contact support</a> or <a href="https://discord.com/users/your-discord-id" target="_blank" rel="noopener noreferrer" style={{ color: '#5865F2', textDecoration: 'underline' }}>join our Discord</a>.</li>
-                  <li><strong>Need help?</strong> — <a href="mailto:damoladauda10@gmail.com" style={{ color: '#4f46e5', textDecoration: 'underline' }}>Contact support</a> or <a href="https://discord.gg/5MnFJ9bAKR" target="_blank" rel="noopener noreferrer" style={{ color: '#5865F2', textDecoration: 'underline' }}>join our Discord</a>.</li>
+          <li><strong>Need help?</strong> — <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: '#4f46e5', textDecoration: 'underline' }}>Contact support</a> or <a href="https://discord.gg/5MnFJ9bAKR" target="_blank" rel="noopener noreferrer" style={{ color: '#5865F2', textDecoration: 'underline' }}>join our Discord</a>.</li>
         </ul>
       </div>
       {/* Secure Payment Badges and Legal Links */}
