@@ -26,6 +26,9 @@ import './functions/discordWebhook';
 // Import timer trigger functions
 import './functions/uptimeCheck';
 
+// Note: resetUsage function is not imported here as it uses the legacy v3 
+// pattern with function.json and is discovered automatically by the runtime.
+
 /**
  * Note: Simply importing these modules is sufficient.
  * Each module contains app.http() or app.timer() calls that register
