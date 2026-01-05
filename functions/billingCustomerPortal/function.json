@@ -1,5 +1,5 @@
 {
-  "scriptFile": "../../dist/src/functions/billingCustomerPortal.js",
+  "scriptFile": "../dist/src/functions/billingCustomerPortal.js",
   "bindings": [
     {
       "authLevel": "anonymous",
