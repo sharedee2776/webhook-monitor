@@ -118,11 +118,17 @@ export async function ingestWebhook(
 
     // --- Usage and Rate Limiting ---
     const usageCount = getUsage(tenantId);
-    const tenant = getTenant(tenantId);
-    const plan = PLANS[tenant?.plan ?? "free"];
+    const tenant = await getTenant(tenantId);
+    if (!tenant) {
+      return {
+        status: 404,
+        jsonBody: { error: "Tenant not found" }
+      };
+    }
+    const plan = PLANS[tenant.plan ?? "free"];
     // --- Subscription state and grace period enforcement ---
     const now = Date.now();
-    if (tenant?.subscriptionState && tenant.subscriptionState !== "active" && tenant.subscriptionState !== "grace") {
+    if (tenant.subscriptionState && tenant.subscriptionState !== "active" && tenant.subscriptionState !== "grace") {
       return {
         status: 402,
         jsonBody: {
@@ -132,7 +138,7 @@ export async function ingestWebhook(
         },
       };
     }
-    if (tenant?.subscriptionState === "grace" && tenant.gracePeriodEndsAt) {
+    if (tenant.subscriptionState === "grace" && tenant.gracePeriodEndsAt) {
       if (now > Date.parse(tenant.gracePeriodEndsAt)) {
         return {
           status: 402,
@@ -144,7 +150,7 @@ export async function ingestWebhook(
         };
       }
     }
-    if (tenant?.subscriptionExpiresAt && now > Date.parse(tenant.subscriptionExpiresAt)) {
+    if (tenant.subscriptionExpiresAt && now > Date.parse(tenant.subscriptionExpiresAt)) {
       return {
         status: 402,
         jsonBody: {
@@ -183,7 +189,7 @@ export async function ingestWebhook(
         },
       };
     }
-    if (tenant!.usage >= plan.monthlyLimit) {
+    if (tenant.usage >= plan.monthlyLimit) {
       return {
         status: 402,
         jsonBody: {
@@ -195,7 +201,7 @@ export async function ingestWebhook(
     }
 
     // --- Response Headers and Logging ---
-    const used = tenant!.usage;
+    const used = tenant.usage;
     const remaining = Math.max(plan.monthlyLimit - used, 0);
     const usageRatio = used / plan.monthlyLimit;
     const warningHeaders: Record<string, string> = {};

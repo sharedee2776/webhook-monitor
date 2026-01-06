@@ -54,13 +54,44 @@ const Dashboard: React.FC = () => {
     }
     setLoadingPlan(true);
     setPlanError('');
+    
+    // Fetch plan - this will auto-create tenant if it doesn't exist
     fetch(`${apiConfig.endpoints.tenantPlan}?tenantId=${encodeURIComponent(tenantId)}`)
       .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch plan');
+        if (!res.ok) {
+          // If 404, try to initialize tenant
+          if (res.status === 404) {
+            return fetch(apiConfig.endpoints.initializeTenant, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ tenantId, plan: 'free' })
+            }).then(initRes => {
+              if (initRes.ok) {
+                return initRes.json().then(initData => {
+                  // Store API key if returned
+                  if (initData.apiKey) {
+                    localStorage.setItem('apiKey', initData.apiKey);
+                  }
+                  // Retry fetching plan
+                  return fetch(`${apiConfig.endpoints.tenantPlan}?tenantId=${encodeURIComponent(tenantId)}`)
+                    .then(retryRes => retryRes.json());
+                });
+              }
+              throw new Error('Failed to initialize tenant');
+            });
+          }
+          throw new Error('Failed to fetch plan');
+        }
         return res.json();
       })
-      .then(data => setPlan(data.plan))
-      .catch(() => setPlanError('Could not load plan details. Please try again later.'))
+      .then(data => {
+        setPlan(data.plan);
+        setPlanError('');
+      })
+      .catch((error) => {
+        console.error('Plan fetch error:', error);
+        setPlanError('Could not load plan details. Please try again later.');
+      })
       .finally(() => setLoadingPlan(false));
   }, [user, tenantId]);
   return (

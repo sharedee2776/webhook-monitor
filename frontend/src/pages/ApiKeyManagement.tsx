@@ -1,63 +1,228 @@
 import React, { useState, useEffect } from 'react';
 import Toast from '../components/Toast';
-import { Key, Copy, Eye, EyeSlash, Trash } from '@phosphor-icons/react';
+import { Key, Copy, ArrowClockwise } from '@phosphor-icons/react';
+import apiConfig from '../config/api';
+import { auth } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { handleApiResponse, handleError } from '../utils/errorHandler';
+
+interface ApiKey {
+  key: string;
+  fullKey: string;
+  active: boolean;
+  createdAt?: string;
+  expiresAt?: string;
+}
 
 const ApiKeyManagement: React.FC = () => {
-  const [apiKeys, setApiKeys] = useState<Array<{ key: string; created: string; visible: boolean }>>([]);
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type?: 'success' | 'error' | 'info' } | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [tenantId, setTenantId] = useState<string>('');
 
   useEffect(() => {
-    // Load API key from localStorage if available
-    const storedKey = localStorage.getItem('apiKey');
-    if (storedKey) {
-      setApiKeys([{ key: storedKey, created: 'Stored locally', visible: false }]);
-    }
-    setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      if (firebaseUser) {
+        const storedTenantId = localStorage.getItem('tenantId') || firebaseUser.uid;
+        setTenantId(storedTenantId);
+        if (!localStorage.getItem('tenantId')) {
+          localStorage.setItem('tenantId', storedTenantId);
+        }
+      }
+    });
+    return () => unsubscribe();
   }, []);
+
+  const fetchApiKeys = async () => {
+    if (!tenantId) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // First, try to initialize tenant if it doesn't exist
+      try {
+        await fetch(apiConfig.endpoints.initializeTenant, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tenantId, plan: 'free' })
+        });
+      } catch (initError) {
+        // Tenant might already exist, that's okay
+        console.log('Tenant initialization:', initError);
+      }
+
+      // Get API key from localStorage (if user has one)
+      const storedApiKey = localStorage.getItem('apiKey');
+      
+      if (!storedApiKey) {
+        // No API key in localStorage, show instructions
+        setLoading(false);
+        return;
+      }
+
+      // Fetch API keys from server
+      const response = await fetch(apiConfig.endpoints.listApiKeys, {
+        headers: {
+          'x-api-key': storedApiKey
+        }
+      });
+
+      if (response.status === 401) {
+        // API key invalid, try to initialize tenant and get new key
+        const initResponse = await fetch(apiConfig.endpoints.initializeTenant, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tenantId, plan: 'free' })
+        });
+
+        if (initResponse.ok) {
+          const initData: any = await handleApiResponse(initResponse);
+          if (initData.apiKey) {
+            localStorage.setItem('apiKey', initData.apiKey);
+            setToast({ message: 'API key generated! Please refresh to see it.', type: 'success' });
+            // Retry fetching
+            await fetchApiKeys();
+            return;
+          }
+        }
+      }
+
+      const data: any = await handleApiResponse(response);
+      if (data.keys && Array.isArray(data.keys)) {
+        setApiKeys(data.keys);
+      } else {
+        setApiKeys([]);
+      }
+    } catch (error: any) {
+      handleError(error, (msg) => setToast({ message: msg, type: 'error' }));
+      // Fallback to localStorage
+      const storedKey = localStorage.getItem('apiKey');
+      if (storedKey) {
+        setApiKeys([{
+          key: storedKey.substring(0, 8) + '...' + storedKey.slice(-4),
+          fullKey: storedKey,
+          active: true,
+          createdAt: 'Stored locally'
+        }]);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user && tenantId) {
+      fetchApiKeys();
+    } else {
+      setLoading(false);
+    }
+  }, [user, tenantId]);
 
   const handleCopy = (key: string) => {
     navigator.clipboard.writeText(key);
     setToast({ message: 'API key copied to clipboard!', type: 'success' });
   };
 
-  const toggleVisibility = (index: number) => {
-    const updated = [...apiKeys];
-    updated[index].visible = !updated[index].visible;
-    setApiKeys(updated);
-  };
+  const handleInitialize = async () => {
+    if (!tenantId) {
+      setToast({ message: 'Please sign in to generate an API key', type: 'error' });
+      return;
+    }
 
-  const handleDelete = (index: number) => {
-    if (confirm('Are you sure you want to remove this API key from local storage?')) {
-      const updated = apiKeys.filter((_, i) => i !== index);
-      setApiKeys(updated);
-      if (updated.length === 0) {
-        localStorage.removeItem('apiKey');
+    setLoading(true);
+    try {
+      const response = await fetch(apiConfig.endpoints.initializeTenant, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantId, plan: 'free' })
+      });
+
+      const data: any = await handleApiResponse(response);
+      if (data.apiKey) {
+        localStorage.setItem('apiKey', data.apiKey);
+        setToast({ message: 'API key generated successfully!', type: 'success' });
+        await fetchApiKeys();
       }
-      setToast({ message: 'API key removed from local storage', type: 'info' });
+    } catch (error: any) {
+      handleError(error, (msg) => setToast({ message: msg, type: 'error' }));
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (!user) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
+        <p>Please sign in to manage your API keys.</p>
+      </div>
+    );
+  }
+
   return (
     <div style={{ margin: '2rem 0', padding: '1rem' }}>
-      <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
-        <Key size={20} /> API Keys
-      </h3>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+          <Key size={20} /> API Keys
+        </h3>
+        <button
+          onClick={handleInitialize}
+          disabled={loading}
+          style={{
+            padding: '0.5rem 1rem',
+            background: '#4f46e5',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 6,
+            cursor: loading ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            fontSize: '0.9rem'
+          }}
+        >
+          <ArrowClockwise size={16} />
+          {loading ? 'Loading...' : 'Generate API Key'}
+        </button>
+      </div>
       
-      {loading && <div>Loading...</div>}
+      {loading && (
+        <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
+          <div style={{ display: 'inline-block', width: '20px', height: '20px', border: '3px solid #e0e0e0', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 0.8s linear infinite', marginBottom: '0.5rem' }}></div>
+          <div>Loading API keys...</div>
+        </div>
+      )}
       
       {!loading && apiKeys.length === 0 && (
         <div style={{ padding: '2rem', textAlign: 'center', background: '#f8f9fa', borderRadius: 8, color: '#666' }}>
-          <p style={{ marginBottom: '0.5rem' }}>No API keys found in local storage.</p>
-          <p style={{ fontSize: '0.9rem' }}>
-            API keys are managed server-side. Contact support or use the admin panel to generate new keys.
+          <p style={{ marginBottom: '0.5rem' }}>No API keys found.</p>
+          <p style={{ fontSize: '0.9rem', marginBottom: '1rem' }}>
+            Generate an API key to start using the webhook monitoring API.
           </p>
-          <div style={{ marginTop: '1rem', padding: '1rem', background: '#fff', borderRadius: 6, textAlign: 'left' }}>
-            <p style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}><strong>To use an API key:</strong></p>
-            <ol style={{ fontSize: '0.85rem', paddingLeft: '1.5rem', margin: 0 }}>
-              <li>Get your API key from your admin or support</li>
-              <li>Store it in your application's environment variables</li>
+          <button
+            onClick={handleInitialize}
+            style={{
+              padding: '0.7rem 1.5rem',
+              background: '#4f46e5',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              cursor: 'pointer',
+              fontSize: '1rem',
+              fontWeight: 600
+            }}
+          >
+            Generate API Key
+          </button>
+          <div style={{ marginTop: '1rem', padding: '1rem', background: '#fff', borderRadius: 6, textAlign: 'left', fontSize: '0.85rem' }}>
+            <p style={{ marginBottom: '0.5rem', fontWeight: 600 }}>How to use your API key:</p>
+            <ol style={{ paddingLeft: '1.5rem', margin: 0, lineHeight: 1.8 }}>
+              <li>Copy your API key after generating it</li>
               <li>Include it in requests as: <code style={{ background: '#f0f0f0', padding: '0.2rem 0.4rem', borderRadius: 4 }}>x-api-key</code> header</li>
+              <li>For write operations, you'll also need to sign requests (see documentation)</li>
             </ol>
           </div>
         </div>
@@ -78,39 +243,30 @@ const ApiKeyManagement: React.FC = () => {
             }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>
-                  Created: {keyData.created}
+                  {keyData.createdAt && keyData.createdAt !== 'Stored locally' && (
+                    <>Created: {new Date(keyData.createdAt).toLocaleDateString()}</>
+                  )}
+                  {keyData.createdAt === 'Stored locally' && <>Stored locally</>}
+                  {keyData.active && <span style={{ marginLeft: '0.5rem', color: '#22c55e' }}>● Active</span>}
+                  {!keyData.active && <span style={{ marginLeft: '0.5rem', color: '#ef4444' }}>● Inactive</span>}
                 </div>
                 <div style={{ fontFamily: 'monospace', fontSize: '0.9rem', wordBreak: 'break-all' }}>
-                  {keyData.visible ? keyData.key : '•'.repeat(20) + keyData.key.slice(-4)}
+                  {keyData.fullKey}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button
-                  onClick={() => toggleVisibility(index)}
-                  style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer' }}
-                  title={keyData.visible ? 'Hide' : 'Show'}
-                >
-                  {keyData.visible ? <EyeSlash size={18} /> : <Eye size={18} />}
-                </button>
-                <button
-                  onClick={() => handleCopy(keyData.key)}
+                  onClick={() => handleCopy(keyData.fullKey)}
                   style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer' }}
                   title="Copy"
                 >
                   <Copy size={18} />
                 </button>
-                <button
-                  onClick={() => handleDelete(index)}
-                  style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer', color: '#d32f2f' }}
-                  title="Remove from local storage"
-                >
-                  <Trash size={18} />
-                </button>
               </div>
             </div>
           ))}
           <div style={{ marginTop: '1rem', padding: '1rem', background: '#fff3cd', borderRadius: 6, fontSize: '0.85rem', color: '#856404' }}>
-            <strong>Note:</strong> This shows API keys stored locally in your browser. To generate new keys, contact support or use the admin panel.
+            <strong>Security Note:</strong> Keep your API keys secure. Never commit them to version control or expose them publicly.
           </div>
         </div>
       )}

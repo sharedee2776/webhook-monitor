@@ -61,7 +61,10 @@ app.http("stripeWebhook", {
         return { status: 400 };
       }
 
-      await applyPlan(tenantId, plan, "stripe");
+      await applyPlan(tenantId, plan, "stripe", {
+        subscriptionState: "active",
+        stripeCustomerId: session.customer as string | undefined,
+      });
 
       context.log(`Plan ${plan} applied to ${tenantId}`);
     }

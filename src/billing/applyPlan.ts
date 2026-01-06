@@ -1,4 +1,4 @@
-import { setTenantPlan } from "../shared/tenantStore";
+import { setTenantPlan, createTenant } from "../shared/tenantStore";
 
 const allowedPlans = ["free", "pro", "team"] as const;
 type AllowedPlan = typeof allowedPlans[number];
@@ -6,7 +6,13 @@ type AllowedPlan = typeof allowedPlans[number];
 export async function applyPlan(
   tenantId: string,
   plan: string,
-  reason: "admin" | "billing" | "stripe"
+  reason: "admin" | "billing" | "stripe",
+  opts?: {
+    subscriptionState?: "active" | "past_due" | "canceled" | "grace" | "trial";
+    subscriptionExpiresAt?: string;
+    gracePeriodEndsAt?: string;
+    stripeCustomerId?: string;
+  }
 ) {
   // Only allow valid plans
   let normalizedPlan: AllowedPlan;
@@ -18,5 +24,14 @@ export async function applyPlan(
     throw new Error(`Invalid plan: ${plan}`);
   }
 
-  setTenantPlan(tenantId, normalizedPlan);
+  // Create tenant if it doesn't exist
+  await createTenant(tenantId, normalizedPlan);
+  
+  // Update tenant plan
+  await setTenantPlan(tenantId, normalizedPlan, {
+    subscriptionState: opts?.subscriptionState ?? "active",
+    subscriptionExpiresAt: opts?.subscriptionExpiresAt,
+    gracePeriodEndsAt: opts?.gracePeriodEndsAt,
+    stripeCustomerId: opts?.stripeCustomerId,
+  });
 }
