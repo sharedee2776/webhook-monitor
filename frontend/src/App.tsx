@@ -40,12 +40,16 @@ function App() {
 
   return (
     <BrowserRouter>
-      <nav style={{ display: 'flex', gap: '1rem', padding: '1rem', background: '#222', color: '#fff', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
-        <Link to="/" style={{ color: '#fff' }}>Home</Link>
-        <Link to="/dashboard" style={{ color: '#fff' }}>Dashboard</Link>
-        <Link to="/checkout" style={{ color: '#fff' }}>Checkout</Link>
-        <Link to="/signup" style={{ color: '#fff' }}>Sign Up</Link>
-        {!user && <Link to="/login" style={{ color: '#fff' }}>Sign In</Link>}
+      <nav style={{ display: 'flex', gap: '1.5rem', padding: '1rem 2rem', background: '#222', color: '#fff', justifyContent: 'center', alignItems: 'center', position: 'relative', flexWrap: 'wrap' }}>
+        <Link to="/" style={{ color: '#fff', fontWeight: 600, fontSize: '1.1rem' }}>Home</Link>
+        {user && <Link to="/dashboard" style={{ color: '#fff' }}>Dashboard</Link>}
+        {user && <Link to="/checkout" style={{ color: '#fff' }}>Pricing</Link>}
+        {!user && (
+          <>
+            <Link to="/signup" style={{ color: '#fff', background: 'var(--primary)', padding: '0.5rem 1.5rem', borderRadius: '0.5rem', fontWeight: 600 }}>Sign Up</Link>
+            <Link to="/login" style={{ color: '#fff' }}>Sign In</Link>
+          </>
+        )}
         {user && user.email && (
           <div style={{ position: 'absolute', right: 24, top: 8 }}>
             <UserProfileMenu userEmail={user.email} />
