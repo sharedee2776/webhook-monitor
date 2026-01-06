@@ -1,7 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { validateApiKey } from "../lib/auth";
-
-
+import { authenticateApiKey } from "../lib/auth";
 import { getUsage } from "../shared/usageTracker";
 import { getEventsForTenant } from "../shared/eventStore";
 import { RETENTION_BY_PLAN } from "../config/retention";
@@ -26,13 +24,14 @@ export async function dashboardEvents(
   if (!apiKey) {
     return { status: 401, body: "Invalid or missing API key" };
   }
-  const keyInfo = validateApiKey(apiKey);
+  
+  // Use new authenticateApiKey with request context for audit logging
+  const keyInfo = await authenticateApiKey(apiKey, request, "/api/dashboardEvents");
   if (!keyInfo) {
     return { status: 401, body: "Invalid or missing API key" };
   }
 
-
-  const plan = (keyInfo as any).plan ?? "free";
+  const plan = keyInfo.plan ?? "free";
   const retentionMs = RETENTION_BY_PLAN[plan] ?? RETENTION_BY_PLAN.free;
   const cutoff = Date.now() - retentionMs;
 

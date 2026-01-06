@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import apiConfig from '../config/api';
 import SkeletonTable from '../components/SkeletonTable';
 import { CheckCircle, WarningCircle } from '@phosphor-icons/react';
+import { handleApiResponse, handleError } from '../utils/errorHandler';
 
 const EventList: React.FC = () => {
 
@@ -21,11 +22,10 @@ const EventList: React.FC = () => {
         const res = await fetch(apiConfig.endpoints.dashboardEvents, {
           headers: apiKey ? { 'x-api-key': apiKey } : {},
         });
-        if (!res.ok) throw new Error('Failed to fetch events');
-        const data = await res.json();
-        setEvents(data.items || []);
+        const data: any = await handleApiResponse(res);
+        setEvents(data.items || data || []);
       } catch (e: any) {
-        setError(e.message || 'Unknown error');
+        handleError(e, setError);
       } finally {
         setLoading(false);
       }
@@ -61,6 +61,15 @@ const EventList: React.FC = () => {
         </thead>
         {loading ? (
           <SkeletonTable rows={3} />
+        ) : filteredEvents.length === 0 ? (
+          <tbody>
+            <tr>
+              <td colSpan={5} style={{ textAlign: 'center', padding: '3rem 1rem', color: '#666' }}>
+                <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>No events yet.</p>
+                <p style={{ fontSize: '0.9rem' }}>Start sending webhooks to see them here!</p>
+              </td>
+            </tr>
+          </tbody>
         ) : (
           <tbody>
             {filteredEvents.map(event => (

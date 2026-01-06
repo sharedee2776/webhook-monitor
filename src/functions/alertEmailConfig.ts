@@ -1,6 +1,7 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import fs from "fs";
 import path from "path";
+import { authenticateApiKey } from "../lib/auth";
 
 const EMAILS_PATH = path.join(process.cwd(), "data", "alertEmails.json");
 
@@ -18,15 +19,16 @@ app.http("alertEmailConfig", {
   methods: ["GET", "POST"],
   authLevel: "anonymous",
   handler: async (req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
-    // Use API key as identifier
     const apiKey = req.headers.get("x-api-key") ?? req.headers.get("X-API-Key");
-    if (!apiKey) {
+    const auth = await authenticateApiKey(apiKey || undefined, req, "alert/email-config");
+    if (!auth) {
       return { status: 401, body: "Invalid or missing API key" };
     }
     const emails = readEmails();
+    const tenantKey = auth.tenantId;
 
     if (req.method === "GET") {
-      return { status: 200, jsonBody: { email: emails[apiKey] || null } };
+      return { status: 200, jsonBody: { email: emails[tenantKey] || null } };
     }
 
     if (req.method === "POST") {
@@ -35,7 +37,7 @@ app.http("alertEmailConfig", {
       if (!email || typeof email !== "string") {
         return { status: 400, jsonBody: { error: "Missing or invalid email" } };
       }
-      emails[apiKey] = email;
+      emails[tenantKey] = email;
       writeEmails(emails);
       return { status: 200, jsonBody: { email } };
     }

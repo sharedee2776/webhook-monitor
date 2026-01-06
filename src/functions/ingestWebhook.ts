@@ -1,6 +1,6 @@
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { validateApiKey } from "../lib/auth";
+import { authenticateApiKey } from "../lib/auth";
 import { createHash, randomUUID } from "crypto";
 import { saveEvent } from "../shared/eventStore";
 import { trackUsage, getUsage } from "../shared/usageTracker";
@@ -8,6 +8,8 @@ import { assertWithinLimit } from "../shared/enforceLimit";
 import { PLANS } from "../plans/plans";
 import { getTenant } from "../shared/tenantStore";
 import { checkRateLimit } from "../lib/rateLimiter";
+import { verifyRequestSignature } from "../lib/requestSigning";
+import { logSecurityEvent, getClientIp } from "../shared/securityAudit";
 import fs from "fs";
 import path from "path";
 
@@ -23,32 +25,40 @@ export async function ingestWebhook(
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
+    // Get raw body first (needed for signature verification)
+    const rawBody = await request.text();
+    
     // --- API Key Validation ---
     const apiKey = request.headers.get("x-api-key") ?? request.headers.get("X-API-Key");
     if (!apiKey) {
+      await logSecurityEvent({
+        eventType: "auth_failure",
+        ipAddress: getClientIp(request),
+        userAgent: request.headers.get("user-agent") || undefined,
+        endpoint: "/api/ingest",
+        method: "POST",
+        errorMessage: "Missing API key",
+      });
       return { status: 401, body: "Invalid or missing API key" };
     }
-    const keyInfo = validateApiKey(apiKey);
+
+    // Use new authenticateApiKey with request context for audit logging
+    const keyInfo = await authenticateApiKey(apiKey, request, "/api/ingest");
     if (!keyInfo) {
       return { status: 401, body: "Invalid or missing API key" };
     }
     (context as any).tenantId = keyInfo.tenantId;
 
-    // --- Signature Verification (optional, for trusted sources) ---
-    const signature = request.headers.get("x-signature");
-    const secret = process.env.WEBHOOK_SECRET;
-    if (secret && signature) {
-      const rawBody = await request.text();
-      const expectedSig = createHash("sha256").update(rawBody + secret).digest("hex");
-      if (signature !== expectedSig) {
-        return { status: 401, body: "Invalid signature" };
-      }
+    // --- Signature Verification (REQUIRED for write operations) ---
+    const signatureResult = await verifyRequestSignature(request, apiKey, rawBody, "/api/ingest");
+    if (!signatureResult.valid) {
+      return { status: 401, body: signatureResult.error || "Invalid request signature" };
     }
 
     // --- Parse and Validate Body ---
     let body: any;
     try {
-      body = await request.json();
+      body = JSON.parse(rawBody);
     } catch {
       return { status: 400, jsonBody: { error: "Invalid JSON body" } };
     }
@@ -146,6 +156,21 @@ export async function ingestWebhook(
     }
     const rate = checkRateLimit(apiKey, plan.name);
     if (!rate.allowed) {
+      await logSecurityEvent({
+        eventType: "rate_limit_exceeded",
+        tenantId: keyInfo.tenantId,
+        apiKey,
+        ipAddress: getClientIp(request),
+        userAgent: request.headers.get("user-agent") || undefined,
+        endpoint: "/api/ingest",
+        method: "POST",
+        statusCode: 429,
+        metadata: {
+          plan: plan.name,
+          retryAfter: rate.retryAfter,
+          limit: rate.limit,
+        },
+      });
       return {
         status: 429,
         jsonBody: {
