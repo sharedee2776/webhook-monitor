@@ -20,7 +20,7 @@ app.http("billingCustomerPortal", {
       return { status: 400, jsonBody: { error: "tenantId required" } };
     }
 
-    const tenant = getTenant(tenantId);
+    const tenant = await getTenant(tenantId);
     if (!tenant || !tenant.stripeCustomerId) {
       return { status: 404, jsonBody: { error: "Tenant or Stripe customer not found" } };
     }

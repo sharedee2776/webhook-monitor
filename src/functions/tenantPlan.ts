@@ -1,5 +1,5 @@
 import { app, HttpRequest, HttpResponseInit } from "@azure/functions";
-import { getTenant } from "../shared/tenantStore";
+import { getTenant, createTenant } from "../shared/tenantStore";
 
 app.http("tenantPlan", {
   route: "tenant/plan",
@@ -11,10 +11,28 @@ app.http("tenantPlan", {
     if (!tenantId) {
       return { status: 400, jsonBody: { error: "Missing tenantId" } };
     }
-    const tenant = getTenant(tenantId);
+    
+    let tenant = await getTenant(tenantId);
+    
+    // Auto-create tenant if it doesn't exist (first time user)
     if (!tenant) {
-      return { status: 404, jsonBody: { error: "Tenant not found" } };
+      try {
+        tenant = await createTenant(tenantId, "free");
+      } catch (error: any) {
+        return { 
+          status: 500, 
+          jsonBody: { error: "Failed to create tenant", details: error.message } 
+        };
+      }
     }
-    return { status: 200, jsonBody: { plan: tenant.plan } };
+    
+    return { 
+      status: 200, 
+      jsonBody: { 
+        plan: tenant.plan,
+        usage: tenant.usage ?? 0,
+        subscriptionState: tenant.subscriptionState ?? "active"
+      } 
+    };
   }
 });
