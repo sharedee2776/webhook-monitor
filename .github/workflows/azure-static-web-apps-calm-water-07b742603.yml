@@ -50,6 +50,7 @@ jobs:
           github_id_token: ${{ steps.idtoken.outputs. result }}
           ###### End of Repository/Build Configurations ######
         env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'https://webhook-monitor-func.azurewebsites.net' }}
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
           VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}

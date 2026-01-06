@@ -5,7 +5,7 @@
  * In production, this is a separate Azure Functions App.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://webhookmonitor-api.azurewebsites.net';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://webhook-monitor-func.azurewebsites.net';
 
 export const apiConfig = {
   baseUrl: API_BASE_URL,
