@@ -1,152 +1,454 @@
-
 # Webhook Monitor — Architecture Overview
 
-## High-Level Design
+## 🏗️ System Architecture
 
-**Frontend:**
-- React (Vite, TypeScript) SPA
-- Handles all user interaction, dashboards, authentication, and billing UI
-- Communicates with backend via REST API
-- Hosted on Azure Static Web Apps (recommended)
+Webhook Monitor is a modern, serverless SaaS platform built on Azure cloud services, designed for scalability, reliability, and security.
 
-**Backend:**
-- Azure Functions (TypeScript)
-- Handles all API endpoints: event ingestion, billing, admin, analytics, and more
-- Stripe integration for billing, plan management, and customer portal
-- Dual event storage: Azure Blob Storage (production) and local JSON (development)
-- Discord webhook integration for system alerts (optional)
-- Secure API key and admin key authentication
+---
 
-## Key Components
-
-## Required Environment Variables
-
-**Backend (Azure Functions):**
-- AzureWebJobsStorage
-- AZURE_STORAGE_CONNECTION_STRING
-- ADMIN_KEY
-- DISCORD_WEBHOOK_URL
-- STRIPE_SECRET_KEY
-- STRIPE_WEBHOOK_SECRET
-- PRO_PRICE_ID
-- TEAM_PRICE_ID
-- PUBLIC_APP_URL
-- STRIPE_MODE
-- BILLING_ENABLED
-
-**Frontend (Vite/React):**
-- VITE_FIREBASE_API_KEY
-- VITE_FIREBASE_AUTH_DOMAIN
-- VITE_FIREBASE_PROJECT_ID
-- VITE_FIREBASE_STORAGE_BUCKET
-- VITE_FIREBASE_MESSAGING_SENDER_ID
-- VITE_FIREBASE_APP_ID
-- VITE_FIREBASE_MEASUREMENT_ID
-
-## Deployment Steps
-1. Set all required secrets in Azure Portal (never commit secrets to code).
-2. Push code to main branch to trigger Azure Static Web Apps deployment.
-3. Monitor build and deployment status in Azure Portal.
-4. Test endpoints and UI after deployment.
-
-## Architecture Flowchart (ASCII)
+## 📐 High-Level Architecture
 
 ```
-    +-------------------+
-    |   User Browser    |
-    +-------------------+
-        |
-        v
-    +-------------------+
-    |  Frontend (SPA)   |
-    | React + Vite      |
-    +-------------------+
-        |
-        v
-    +-------------------+
-    |  Azure Static Web |
-    |      Apps         |
-    +-------------------+
-        |
-        v
-    +-------------------+
-    |  Backend (API)    |
-    | Azure Functions   |
-    +-------------------+
-        |
-    +--------+--------+
-    |                 |
-    v                 v
- +----------------+  +-------------------+
- | Azure Blob     |  | Stripe Billing    |
- | Storage        |  | & Customer Portal |
- +----------------+  +-------------------+
-    |
-    v
- +----------------+
- | Discord Alerts |
- +----------------+
+┌─────────────────────────────────────────────────────────────────┐
+│                         User Layer                               │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
+│  │   Web App    │  │  Mobile App  │  │  API Clients │         │
+│  │  (Browser)   │  │   (Future)   │  │  (Webhooks)  │         │
+│  └──────────────┘  └──────────────┘  └──────────────┘         │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Frontend Layer (React SPA)                    │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  Azure Static Web Apps (Global CDN, SSL, Custom Domain) │   │
+│  │  • React 18 + TypeScript + Vite                         │   │
+│  │  • Firebase Authentication                              │   │
+│  │  • Real-time Dashboard & Analytics                     │   │
+│  │  • Stripe Checkout Integration                         │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    API Gateway Layer                             │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │         Azure Functions (Serverless API)                  │   │
+│  │  • RESTful API Endpoints                                 │   │
+│  │  • API Key Authentication                                │   │
+│  │  • Request Signing Verification                          │   │
+│  │  • Rate Limiting                                         │   │
+│  │  • Security Audit Logging                                │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        ▼                     ▼                     ▼
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│   Storage    │    │   Billing    │    │  Integrations│
+│   Layer      │    │   Layer      │    │    Layer     │
+├──────────────┤    ├──────────────┤    ├──────────────┤
+│ Azure Table  │    │   Stripe     │    │   Discord    │
+│ Storage      │    │   API        │    │   Webhooks   │
+│              │    │              │    │              │
+│ • ApiKeys    │    │ • Checkout   │    │ • Alerts     │
+│ • Tenants    │    │ • Webhooks   │    │ • Notifications│
+│ • Audit Logs│    │ • Subscriptions│   │              │
+│              │    │              │    │              │
+│ Azure Blob  │    │              │    │              │
+│ Storage      │    │              │    │              │
+│              │    │              │    │              │
+│ • Events     │    │              │    │              │
+└──────────────┘    └──────────────┘    └──────────────┘
 ```
 
-This diagram shows the flow from user interaction, through the SPA, to backend APIs, and onward to storage, billing, and alerting integrations.
+---
 
-**Frontend (frontend/):**
-- `src/pages/`: Home, Signup, Login, Dashboard, Checkout, PlanDetails, etc.
-- `src/components/`: Analytics charts, event lists, notifications, API key management, etc.
-- `firebase.ts`: Firebase Auth integration
-- `App.tsx`: Main app shell and routing
+## 🔄 Data Flow
 
-**Backend (src/functions/):**
-- `ingestWebhook.ts`: Main webhook endpoint, deduplication, event storage
-- `stripeWebhook.ts`: Handles Stripe webhook events (checkout, subscription, invoice)
-- `billingCreateCheckout.ts`: Creates Stripe checkout sessions
-- `billingCustomerPortal.ts`: Customer portal for subscription management
-- `billingApplyPlan.ts`: Applies plans to tenants
-- `adminSetPlan.ts`: Admin plan management
-- `dashboardEvents.ts`: Lists stored events
-- `alertWebhook.ts`: (Optional) Sends alerts to Discord
+### 1. Webhook Event Ingestion Flow
 
-**Shared Logic (src/shared/, src/billing/, src/services/, src/lib/):**
-- Event storage, usage tracking, plan logic, API key validation, rate limiting, and more
+```
+Client Application
+    │
+    │ POST /api/ingest
+    │ Headers: x-api-key, x-signature, x-timestamp
+    │ Body: { eventType, payload }
+    ▼
+Azure Functions (ingestWebhook)
+    │
+    ├─► API Key Validation (Azure Table: ApiKeys)
+    │   ├─► Check key exists
+    │   ├─► Check key is active
+    │   ├─► Check key expiration
+    │   └─► Log auth attempt (SecurityAuditLog)
+    │
+    ├─► Request Signature Verification
+    │   ├─► Validate HMAC-SHA256 signature
+    │   ├─► Validate timestamp (5-min window)
+    │   └─► Log signing attempt (SecurityAuditLog)
+    │
+    ├─► Rate Limiting Check
+    │   ├─► Check per-plan limits
+    │   └─► Log violations (SecurityAuditLog)
+    │
+    ├─► Event Processing
+    │   ├─► Validate event structure
+    │   ├─► Deduplicate (if needed)
+    │   └─► Extract tenant ID
+    │
+    └─► Event Storage
+        ├─► Save to Azure Blob Storage (events container)
+        └─► Update usage tracking (Azure Table: Tenants)
+```
 
-## Data Flow
+### 2. Dashboard Data Flow
 
-1. **Event Ingestion:**
-   - Client sends event to `/api/ingestWebhook`
-   - Backend deduplicates and stores event (Azure Blob Storage or local JSON)
-2. **Billing:**
-   - User initiates checkout via frontend → `/api/billing/create-checkout`
-   - Stripe handles payment, calls `/api/billing/stripe-webhook`
-   - Backend updates subscription/plan and enforces limits
-3. **Analytics & Dashboard:**
-   - Frontend fetches usage, events, and plan info from backend APIs
-   - Real-time updates via polling or webhooks (future: SignalR or WebSockets)
+```
+Frontend Dashboard
+    │
+    │ GET /api/dashboardEvents
+    │ Headers: x-api-key
+    ▼
+Azure Functions (dashboardEvents)
+    │
+    ├─► API Key Authentication
+    │   └─► Log auth attempt (SecurityAuditLog)
+    │
+    ├─► Query Azure Blob Storage
+    │   └─► Filter by tenant ID
+    │
+    └─► Return Events
+        └─► Frontend displays in dashboard
+```
 
-## Deployment
+### 3. Billing Flow
 
-- **Frontend:** Deploy to Azure Static Web Apps for global CDN, SSL, and custom domain support
-- **Backend:** Deploy Azure Functions (can be integrated with Static Web Apps or as a separate Function App)
-- **DNS:** Point your domain (e.g., webhookmonitor.shop) to Azure Static Web Apps
-- **Environment:** Update all environment variables and URLs to use your live domain before production
+```
+User Initiates Checkout
+    │
+    │ POST /api/billing/create-checkout
+    │ Headers: Firebase Auth Token
+    ▼
+Azure Functions (billingCreateCheckout)
+    │
+    ├─► Validate Firebase Auth
+    ├─► Create Stripe Checkout Session
+    └─► Return Checkout URL
+        │
+        ▼
+User Completes Payment (Stripe)
+    │
+    │ Webhook: checkout.session.completed
+    ▼
+Azure Functions (stripeWebhook)
+    │
+    ├─► Verify Stripe Signature
+    ├─► Extract tenant ID & plan
+    └─► Apply Plan (billingApplyPlan)
+        │
+        └─► Update Azure Table: Tenants
+```
 
-## Security & Best Practices
-- All API endpoints require API key authentication
-- Admin endpoints require a separate admin key
-- Stripe secrets and sensitive keys are never exposed to frontend
-- HTTPS enforced via Azure Static Web Apps and Functions
+---
 
-## Extensibility
-- Add more integrations (Slack, Zapier, etc.) via new Azure Functions
-- Add real-time features (WebSockets, SignalR) for live dashboards
-- Modular frontend and backend for easy feature expansion
-3. **Dashboard:**
-   - Frontend fetches events from `/api/dashboardEvents`
+## 🗄️ Storage Architecture
 
-## Security
-- All secrets in environment variables (never in code)
-- API key required for all sensitive endpoints
-- Stripe webhook signature verification
+### Azure Table Storage
 
-## Extensibility
-- Add more event sources, plans, or integrations as needed
-- Frontend can be built and deployed independently
+**Purpose**: Structured data storage with fast lookups
+
+**Tables:**
+
+1. **`ApiKeys`**
+   - **Partition Key**: `"tenant"`
+   - **Row Key**: API key value
+   - **Fields**: `tenantId`, `plan`, `active`, `expiresAt`, `createdAt`
+   - **Usage**: API key authentication and validation
+
+2. **`Tenants`**
+   - **Partition Key**: Tenant ID
+   - **Row Key**: Tenant ID
+   - **Fields**: `plan`, `usage`, `stripeCustomerId`, `subscriptionState`
+   - **Usage**: Tenant information and subscription management
+
+3. **`SecurityAuditLog`**
+   - **Partition Key**: `tenantId` or `"system"`
+   - **Row Key**: Timestamp-based unique ID
+   - **Fields**: `eventType`, `apiKey` (partial), `ipAddress`, `userAgent`, `endpoint`, `method`, `errorMessage`
+   - **Usage**: Security event audit trail
+
+4. **`MonitoredUrls`**
+   - **Purpose**: URLs to monitor for uptime
+   - **Usage**: Uptime monitoring configuration
+
+5. **`UptimeChecks`**
+   - **Purpose**: Uptime check results
+   - **Usage**: Historical uptime data
+
+6. **`AlertState`**
+   - **Purpose**: Alert deduplication state
+   - **Usage**: Prevent duplicate alert notifications
+
+### Azure Blob Storage
+
+**Purpose**: Event data storage (large JSON files)
+
+**Container**: `events`
+
+**File Naming**: `${tenantId}-${timestamp}.json`
+
+**Structure**:
+```json
+{
+  "eventId": "unique-id",
+  "tenantId": "tenant_123",
+  "eventType": "webhook.event",
+  "payload": { ... },
+  "timestamp": "2025-01-15T10:30:00Z",
+  "metadata": { ... }
+}
+```
+
+---
+
+## 🔒 Security Architecture
+
+### Authentication Layers
+
+1. **API Key Authentication**
+   - All protected endpoints require `x-api-key` header
+   - Keys validated against Azure Table Storage
+   - Expiration checking enabled
+   - Inactive keys rejected
+
+2. **Request Signing** (Write Operations)
+   - HMAC-SHA256 signature required for POST requests
+   - Timestamp validation (5-minute window)
+   - Prevents tampering and replay attacks
+   - Signature: `HMAC-SHA256(body + timestamp + apiKey)`
+
+3. **Firebase Authentication** (Frontend)
+   - User authentication for dashboard access
+   - Google Sign-In support
+   - Tenant ID derived from Firebase UID
+
+### Security Audit Logging
+
+All security events are logged to `SecurityAuditLog` table:
+
+- **Event Types**:
+  - `auth_success` - Successful authentication
+  - `auth_failure` - Failed authentication
+  - `auth_expired` - Expired API key attempt
+  - `request_signed` - Valid signed request
+  - `request_unsigned` - Missing/invalid signature
+  - `rate_limit_exceeded` - Rate limit violation
+
+- **Logged Data**:
+  - IP address (extracted from headers)
+  - User agent
+  - Endpoint and HTTP method
+  - Error messages (if any)
+  - Timestamp
+
+### Data Isolation
+
+- **Tenant Isolation**: All data is isolated by tenant ID
+- **API Key Scoping**: Each API key is associated with a single tenant
+- **Storage Isolation**: Events stored per tenant in blob storage
+
+---
+
+## 🔌 API Endpoints
+
+### Public Endpoints
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/api/health` | GET | None | Health check |
+
+### Protected Endpoints (API Key Required)
+
+| Endpoint | Method | Signing | Description |
+|----------|--------|---------|-------------|
+| `/api/ingest` | POST | ✅ Required | Ingest webhook event |
+| `/api/dashboardEvents` | GET | ❌ | List events for dashboard |
+| `/api/webhook/endpoints` | GET/POST/DELETE | ❌ | Manage webhook endpoints |
+| `/api/alert/email-config` | GET/POST | ❌ | Configure alert emails |
+| `/api/alert/webhook` | POST | ❌ | Send alert webhook |
+
+### Frontend Endpoints (Firebase Auth)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/billing/create-checkout` | POST | Create Stripe checkout |
+| `/api/billing/customer-portal` | POST | Access customer portal |
+| `/api/tenant/plan` | GET | Get tenant plan |
+
+### System Endpoints
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/api/billing/stripe-webhook` | POST | Stripe Signature | Stripe webhook handler |
+
+---
+
+## 🚀 Deployment Architecture
+
+### Frontend Deployment
+
+**Platform**: Azure Static Web Apps
+
+**Features**:
+- Global CDN distribution
+- Automatic SSL certificates
+- Custom domain support
+- GitHub Actions integration
+
+**Build Process**:
+1. GitHub Actions triggered on push to `main`
+2. Build React app with Vite
+3. Deploy to Azure Static Web Apps
+4. Environment variables injected from GitHub Secrets
+
+### Backend Deployment
+
+**Platform**: Azure Functions
+
+**Features**:
+- Serverless compute (pay per execution)
+- Automatic scaling
+- Integrated with Azure Storage
+- GitHub Actions deployment
+
+**Deployment Process**:
+1. GitHub Actions triggered on push to `main`
+2. Build TypeScript code
+3. Deploy to Azure Functions App
+4. Environment variables from Azure App Settings
+
+### Infrastructure Components
+
+- **Azure Functions App**: Serverless API backend
+- **Azure Storage Account**: Data persistence
+- **Azure Static Web Apps**: Frontend hosting
+- **GitHub Actions**: CI/CD pipeline
+- **Stripe**: Payment processing
+- **Firebase**: Authentication
+
+---
+
+## 📊 Monitoring & Observability
+
+### Health Checks
+
+- **Endpoint**: `/api/health`
+- **Returns**: System status, configuration state
+- **Usage**: Load balancer health checks, monitoring
+
+### Audit Logging
+
+- **Table**: `SecurityAuditLog`
+- **Events**: All authentication and security events
+- **Retention**: Configurable (recommended: 90 days)
+
+### Metrics (Future)
+
+- Request count per endpoint
+- Response times
+- Error rates
+- Usage per tenant
+- Rate limit violations
+
+---
+
+## 🔄 Integration Points
+
+### Stripe Integration
+
+- **Checkout**: Create payment sessions
+- **Webhooks**: Handle subscription events
+- **Customer Portal**: Subscription management
+- **Plans**: Free, Pro, Team tiers
+
+### Firebase Integration
+
+- **Authentication**: User sign-in/sign-up
+- **Tenant Mapping**: Firebase UID → Tenant ID
+
+### Discord Integration (Optional)
+
+- **Webhooks**: System alerts
+- **Notifications**: Uptime alerts, system events
+
+---
+
+## 🛠️ Development Architecture
+
+### Local Development
+
+- **Backend**: Azure Functions Core Tools (`func start`)
+- **Frontend**: Vite dev server (`npm run dev`)
+- **Storage**: Azurite (local Azure Storage emulator)
+- **Environment**: `local.settings.json` for backend, `.env` for frontend
+
+### Testing
+
+- **Unit Tests**: (Future implementation)
+- **Integration Tests**: Manual testing scripts
+- **Security Tests**: Automated test suite (`test-security.js`)
+
+---
+
+## 📈 Scalability Considerations
+
+### Current Architecture
+
+- **Serverless**: Automatic scaling based on demand
+- **Storage**: Azure Storage scales automatically
+- **CDN**: Global distribution for frontend
+
+### Future Enhancements
+
+- **Caching**: Redis for frequently accessed data
+- **Queue**: Azure Service Bus for async processing
+- **Database**: Consider Azure Cosmos DB for complex queries
+- **Real-time**: SignalR for live dashboard updates
+
+---
+
+## 🔐 Security Best Practices
+
+### Implemented
+
+- ✅ API key authentication
+- ✅ Request signing for write operations
+- ✅ Security audit logging
+- ✅ IP address tracking
+- ✅ Rate limiting
+- ✅ Tenant data isolation
+- ✅ HTTPS enforcement
+- ✅ Secret management (Azure App Settings)
+
+### Recommended Enhancements
+
+- [ ] IP whitelisting
+- [ ] API key rotation automation
+- [ ] Role-based access control (RBAC)
+- [ ] DDoS protection
+- [ ] WAF (Web Application Firewall)
+
+---
+
+## 📚 Related Documentation
+
+- [STORAGE_ARCHITECTURE.md](./STORAGE_ARCHITECTURE.md) - Detailed storage design
+- [SECURITY_ENHANCEMENT_PLAN.md](./SECURITY_ENHANCEMENT_PLAN.md) - Security roadmap
+- [PRE_DEPLOYMENT_CHECKLIST.md](./PRE_DEPLOYMENT_CHECKLIST.md) - Deployment guide
+- [STORAGE_CONFIGURATION_GUIDE.md](./STORAGE_CONFIGURATION_GUIDE.md) - Storage setup
+
+---
+
+**Last Updated**: January 2025  
+**Version**: 2.0

@@ -1,6 +1,7 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import fs from "fs";
 import path from "path";
+import { authenticateApiKey } from "../lib/auth";
 
 const ENDPOINTS_PATH = path.join(process.cwd(), "data", "webhookEndpoints.json");
 
@@ -18,16 +19,18 @@ app.http("webhookEndpoints", {
   methods: ["GET", "POST", "DELETE"],
   authLevel: "anonymous",
   handler: async (req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
-    // Use API key as identifier
     const apiKey = req.headers.get("x-api-key") ?? req.headers.get("X-API-Key");
-    if (!apiKey) {
+    const auth = await authenticateApiKey(apiKey || undefined, req, "webhook/endpoints");
+    if (!auth) {
       return { status: 401, body: "Invalid or missing API key" };
     }
     let endpoints = readEndpoints();
-    endpoints[apiKey] = endpoints[apiKey] || [];
+    // Use tenantId as identifier instead of raw API key
+    const tenantKey = auth.tenantId;
+    endpoints[tenantKey] = endpoints[tenantKey] || [];
 
     if (req.method === "GET") {
-      return { status: 200, jsonBody: { endpoints: endpoints[apiKey] } };
+      return { status: 200, jsonBody: { endpoints: endpoints[tenantKey] } };
     }
 
     if (req.method === "POST") {
@@ -37,7 +40,7 @@ app.http("webhookEndpoints", {
         return { status: 400, jsonBody: { error: "Missing name or url" } };
       }
       const newEndpoint = { id: Date.now(), name, url, active: !!active };
-      endpoints[apiKey].push(newEndpoint);
+      endpoints[tenantKey].push(newEndpoint);
       writeEndpoints(endpoints);
       return { status: 201, jsonBody: { endpoint: newEndpoint } };
     }
@@ -48,9 +51,9 @@ app.http("webhookEndpoints", {
       if (!id) {
         return { status: 400, jsonBody: { error: "Missing id" } };
       }
-      endpoints[apiKey] = endpoints[apiKey].filter((ep: any) => ep.id !== id);
+      endpoints[tenantKey] = endpoints[tenantKey].filter((ep: any) => ep.id !== id);
       writeEndpoints(endpoints);
-      return { status: 200, jsonBody: { endpoints: endpoints[apiKey] } };
+      return { status: 200, jsonBody: { endpoints: endpoints[tenantKey] } };
     }
 
     return { status: 405, body: "Method not allowed" };

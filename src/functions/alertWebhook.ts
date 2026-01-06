@@ -1,6 +1,6 @@
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { validateApiKey } from "../lib/auth";
+import { authenticateApiKey } from "../lib/auth";
 
 type AlertPayload = {
   url: string;
@@ -20,7 +20,7 @@ export async function alertWebhook(
   if (!apiKey) {
     return { status: 401, body: "Invalid or missing API key" };
   }
-  const keyInfo = validateApiKey(apiKey);
+  const keyInfo = await authenticateApiKey(apiKey, req, "/api/alert/webhook");
   if (!keyInfo) {
     return { status: 401, body: "Invalid or missing API key" };
   }

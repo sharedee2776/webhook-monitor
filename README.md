@@ -1,177 +1,470 @@
-
 # Webhook Monitor
 
-Webhook Monitor is a full-stack SaaS platform for monitoring, analyzing, and managing webhook events with real-time analytics, robust billing, and user-friendly dashboards. Built with React (Vite, TypeScript) for the frontend and Azure Functions (TypeScript) for the backend, it is designed for reliability, scalability, and ease of use.
+> A production-ready, enterprise-grade SaaS platform for monitoring, analyzing, and managing webhook events with real-time analytics, robust billing, and comprehensive security features.
 
-## Setup & Installation
+[![Azure Functions](https://img.shields.io/badge/Azure-Functions-0062AD?logo=azure-functions)](https://azure.microsoft.com/services/functions/)
+[![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![Stripe](https://img.shields.io/badge/Stripe-Enabled-635BFF?logo=stripe)](https://stripe.com/)
+
+## 🚀 Features
+
+### Core Functionality
+- **Webhook Event Ingestion** - Secure, scalable webhook event processing with deduplication
+- **Real-Time Analytics** - Comprehensive dashboards with event filtering, search, and visualization
+- **Multi-Tenant Architecture** - Isolated tenant data with secure API key authentication
+- **Subscription Billing** - Stripe-powered subscription management with plan enforcement
+- **Uptime Monitoring** - Automated uptime checks with alerting capabilities
+
+### Security Features ✨
+- **API Key Management** - Secure API key storage with expiration and rotation support
+- **Request Signing** - HMAC-SHA256 request signing for write operations (prevents tampering and replay attacks)
+- **Security Audit Logging** - Comprehensive audit trail of all authentication attempts and security events
+- **IP Address Tracking** - Client IP logging for security monitoring and threat detection
+- **Rate Limiting** - Per-plan rate limiting to prevent abuse
+- **Usage Limits** - Plan-based usage enforcement (free/pro/team tiers)
+
+### Frontend Features
+- **Modern Dashboard** - Responsive React dashboard with real-time updates
+- **Firebase Authentication** - Secure user authentication with Google Sign-In
+- **Event Management** - Search, filter, and analyze webhook events
+- **API Key Management** - Generate, view, and manage API keys
+- **Billing Portal** - Stripe customer portal integration for subscription management
+- **Alert Configuration** - Email and webhook alert setup
+
+### Backend Features
+- **Azure Functions** - Serverless, scalable API endpoints
+- **Azure Storage** - Table Storage for structured data, Blob Storage for events
+- **Stripe Integration** - Complete billing workflow (checkout, subscriptions, webhooks)
+- **Discord Integration** - Optional Discord webhook alerts
+- **Health Monitoring** - System health checks and diagnostics
+
+---
+
+## 📋 Table of Contents
+
+- [Quick Start](#quick-start)
+- [Architecture](#architecture)
+- [Security](#security)
+- [API Reference](#api-reference)
+- [Deployment](#deployment)
+- [Development](#development)
+- [Contributing](#contributing)
+
+---
+
+## 🏗️ Architecture
+
+### Tech Stack
+
+**Frontend:**
+- React 18+ with TypeScript
+- Vite for build tooling
+- Firebase Authentication
+- Azure Static Web Apps (hosting)
+
+**Backend:**
+- Azure Functions (Node.js/TypeScript)
+- Azure Table Storage (structured data)
+- Azure Blob Storage (event data)
+- Stripe API (billing)
+
+**Infrastructure:**
+- Azure Functions (serverless compute)
+- Azure Storage Account (data persistence)
+- Azure Static Web Apps (frontend hosting)
+- GitHub Actions (CI/CD)
+
+For detailed architecture documentation, see [ARCHITECTURE.md](./ARCHITECTURE.md).
+
+---
+
+## 🔒 Security
+
+### Authentication & Authorization
+- **API Key Authentication** - All protected endpoints require valid API keys
+- **API Key Expiration** - Keys can be set to expire automatically
+- **Request Signing** - Write operations require HMAC-SHA256 signatures
+- **Timestamp Validation** - Prevents replay attacks (5-minute window)
+- **IP Address Logging** - All requests log client IP addresses
+
+### Security Audit Logging
+All security events are logged to Azure Table Storage (`SecurityAuditLog`):
+- Authentication successes and failures
+- API key expiration events
+- Request signing attempts
+- Rate limit violations
+- Suspicious activity patterns
+
+### Data Security
+- **Tenant Isolation** - Data is isolated per tenant using tenant IDs
+- **Encryption at Rest** - Azure Storage provides automatic encryption
+- **HTTPS Only** - All communications encrypted in transit
+- **Secret Management** - All secrets stored in Azure App Settings (never in code)
+
+For detailed security documentation, see [SECURITY_ENHANCEMENT_PLAN.md](./SECURITY_ENHANCEMENT_PLAN.md).
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 20.x or higher
+- Azure Functions Core Tools (`func`)
+- Azure account with Storage Account and Functions App
+- Stripe account (for billing features)
+- Firebase project (for authentication)
+
+### Installation
 
 1. **Clone the repository:**
-    ```bash
-    git clone https://github.com/sharedee2776/webhook-monitor.git
-    cd webhook-monitor
-    ```
-
-2. **Install dependencies:**
-    - Backend:
-       ```bash
-       npm install
-       ```
-    - Frontend:
-       ```bash
-       cd frontend
-       npm install
-       ```
-
-3. **Configure environment variables:**
-    - Set secrets in Azure Portal for production (see below for required variables)
-    - For local development, update `local.settings.json` and `.env` files as needed
-
-4. **Build and run locally:**
-    - Backend:
-       ```bash
-       npm run build
-       func start
-       ```
-    - Frontend:
-       ```bash
-       cd frontend
-       npm run build
-       npm run dev
-       ```
-
-## Required Environment Variables
-
-See `ARCHITECTURE.md` for a full list of required secrets and environment variables for both frontend and backend.
-
-## Deployment
-
-1. Push to main branch to trigger Azure Static Web Apps deployment.
-2. Ensure all secrets are set in Azure Portal (not in code).
-3. Monitor build and deployment status in Azure Portal.
-
-## API Endpoints (Template)
-
-| Endpoint                      | Method | Description                       |
-|-------------------------------|--------|-----------------------------------|
-| /api/alert/email-config       | GET/POST | Manage alert email config         |
-| /api/alertWebhook            | POST   | Ingest alert webhook              |
-| /api/billing/apply-plan       | POST   | Apply billing plan                |
-| /api/billing/create-checkout  | POST   | Create Stripe checkout session    |
-| /api/billing/customer-portal  | POST   | Access Stripe customer portal     |
-| /api/dashboardEvents          | GET    | List dashboard events             |
-| /api/discord/integration      | GET/POST | Discord integration              |
-| /api/ingestWebhook            | POST   | Ingest webhook event              |
-| /api/setPlanAdmin             | POST   | Admin set plan                    |
-| /api/billing/stripe-webhook   | POST   | Stripe webhook events             |
-| /api/tenant/plan              | GET    | Get tenant plan                   |
-| /api/webhook/endpoints        | GET/POST/DELETE | Manage webhook endpoints |
-
-## Architecture Diagram
-
-See [ARCHITECTURE.md](ARCHITECTURE.md) for a high-level diagram and flowchart.
-
-## Features
-
-### Frontend (React + Vite)
-- Modern, responsive dashboard for event analytics and management
-- User authentication (Firebase Auth)
-- Plan management, subscription upgrades/downgrades
-- Usage analytics, event search, and filtering
-- API key management and webhook endpoint configuration
-- Real-time notifications and alert center
-- Stripe-powered checkout and billing portal
-- Documentation, support, and onboarding flows
-
-### Backend (Azure Functions + TypeScript)
-- Secure REST API for all frontend features
-- Webhook event ingestion, deduplication, and storage
-- Dual event storage: Azure Blob Storage (prod) and local JSON (dev)
-- Stripe integration for subscription billing and plan enforcement
-- Usage tracking, plan limits, and admin endpoints
-- Discord webhook integration for system alerts (optional)
-- Secure API key and admin key authentication
-
-## Project Structure
-
-```
-├── frontend/               # React app (Vite, TypeScript)
-│   ├── src/                # Frontend source code
-│   └── ...
-├── src/
-│   ├── functions/          # Azure Functions endpoints (webhooks, billing, admin, etc.)
-│   ├── shared/             # Shared logic (event store, usage, plans, etc.)
-│   ├── billing/            # Stripe plan mapping and billing logic
-│   ├── config/             # Plan and retention configs
-│   ├── services/           # Service layer (e.g., billingService)
-│   ├── lib/                # Auth and rate limiting helpers
-│   └── index.ts            # Entry point
-├── data/                   # Local event storage (devEvents.json)
-├── scripts/                # Seed and utility scripts
-├── docs/                   # Documentation (event model, etc.)
-├── package.json            # Project dependencies and scripts
-├── local.settings.json     # Local environment variables (not committed)
-```
-
-## Setup & Development
-
-1. **Clone the repo:**
-   ```sh
-   git clone https://github.com/yourusername/webhook-monitor.git
+   ```bash
+   git clone https://github.com/sharedee2776/webhook-monitor.git
    cd webhook-monitor
    ```
+
 2. **Install dependencies:**
-   ```sh
+   ```bash
+   # Backend dependencies
    npm install
-   cd frontend && npm install && cd ..
+   
+   # Frontend dependencies
+   cd frontend
+   npm install
+   cd ..
    ```
-3. **Configure environment:**
-   - Copy `local.settings.json.example` to `local.settings.json` and fill in secrets (see below).
-   - For frontend, create a `.env` if needed for Firebase or other secrets.
-4. **Run locally:**
-   ```sh
+
+3. **Configure environment variables:**
+   
+   **Backend (`local.settings.json`):**
+   ```json
+   {
+     "Values": {
+       "AzureWebJobsStorage": "YOUR_AZURE_STORAGE_CONNECTION_STRING",
+       "STRIPE_SECRET_KEY": "sk_test_...",
+       "STRIPE_WEBHOOK_SECRET": "whsec_...",
+       "PRO_PRICE_ID": "price_...",
+       "TEAM_PRICE_ID": "price_...",
+       "PUBLIC_APP_URL": "http://localhost:5173"
+     }
+   }
+   ```
+   
+   **Frontend (`.env`):**
+   ```env
+   VITE_FIREBASE_API_KEY=your_firebase_api_key
+   VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=your_project_id
+   VITE_API_BASE_URL=http://localhost:7071
+   ```
+
+4. **Create required Azure Storage tables:**
+   ```bash
+   # Using the provided script
+   export AzureWebJobsStorage="YOUR_CONNECTION_STRING"
+   node scripts/createMissingTables.js
+   ```
+
+5. **Create an API key:**
+   ```bash
+   export AzureWebJobsStorage="YOUR_CONNECTION_STRING"
+   node scripts/seedApiKeyProduction.js tenant_123 free
+   ```
+
+6. **Build and run:**
+   ```bash
+   # Build backend
+   npm run build
+   
+   # Start backend (in one terminal)
+   func start
+   
+   # Start frontend (in another terminal)
+   cd frontend
+   npm run dev
+   ```
+
+7. **Access the application:**
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:7071
+
+---
+
+## 📡 API Reference
+
+### Authentication
+
+All protected endpoints require an API key in the `x-api-key` header:
+
+```bash
+curl -H "x-api-key: YOUR_API_KEY" https://api.example.com/api/endpoint
+```
+
+### Write Operations (Request Signing Required)
+
+For POST requests to `/api/ingest`, you must include request signing:
+
+```javascript
+const timestamp = Date.now().toString();
+const body = JSON.stringify(eventData);
+const signature = crypto
+  .createHmac('sha256', apiKey)
+  .update(body + timestamp + apiKey)
+  .digest('hex');
+
+fetch('/api/ingest', {
+  method: 'POST',
+  headers: {
+    'x-api-key': apiKey,
+    'x-signature': signature,
+    'x-timestamp': timestamp,
+    'Content-Type': 'application/json'
+  },
+  body: body
+});
+```
+
+### Endpoints
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/api/health` | GET | None | Health check endpoint |
+| `/api/ingest` | POST | API Key + Signature | Ingest webhook event |
+| `/api/dashboardEvents` | GET | API Key | List events for dashboard |
+| `/api/webhook/endpoints` | GET/POST/DELETE | API Key | Manage webhook endpoints |
+| `/api/alert/email-config` | GET/POST | API Key | Configure alert emails |
+| `/api/billing/create-checkout` | POST | Firebase Auth | Create Stripe checkout |
+| `/api/billing/customer-portal` | POST | Firebase Auth | Access customer portal |
+| `/api/tenant/plan` | GET | Query Param | Get tenant plan info |
+
+For complete API documentation, see [docs/](./docs/).
+
+---
+
+## 🗄️ Storage Architecture
+
+### Azure Table Storage
+
+**Tables:**
+- `ApiKeys` - API key authentication and tenant mapping
+- `Tenants` - Tenant information and subscription plans
+- `SecurityAuditLog` - Security event audit trail
+- `MonitoredUrls` - Uptime monitoring URLs
+- `UptimeChecks` - Uptime check results
+- `AlertState` - Alert deduplication state
+
+### Azure Blob Storage
+
+**Containers:**
+- `events` - Webhook event data (JSON files)
+
+For detailed storage documentation, see [STORAGE_ARCHITECTURE.md](./STORAGE_ARCHITECTURE.md).
+
+---
+
+## 🚢 Deployment
+
+### Prerequisites
+- Azure account with Functions App and Storage Account
+- GitHub repository with Actions enabled
+- Stripe account configured
+- Firebase project configured
+
+### Deployment Steps
+
+1. **Configure Azure Resources:**
+   - Create Azure Functions App
+   - Create Azure Storage Account
+   - Create Azure Static Web App
+
+2. **Set Azure App Settings:**
+   - `AzureWebJobsStorage` - Storage connection string
+   - `STRIPE_SECRET_KEY` - Stripe secret key
+   - `STRIPE_WEBHOOK_SECRET` - Stripe webhook secret
+   - `PRO_PRICE_ID` - Stripe Pro plan price ID
+   - `TEAM_PRICE_ID` - Stripe Team plan price ID
+
+3. **Set GitHub Secrets (for frontend):**
+   - `VITE_FIREBASE_API_KEY`
+   - `VITE_FIREBASE_AUTH_DOMAIN`
+   - `VITE_FIREBASE_PROJECT_ID`
+   - `VITE_FIREBASE_STORAGE_BUCKET`
+   - `VITE_FIREBASE_MESSAGING_SENDER_ID`
+   - `VITE_FIREBASE_APP_ID`
+   - `VITE_FIREBASE_MEASUREMENT_ID`
+   - `VITE_API_BASE_URL`
+   - `AZURE_CREDENTIALS` (for deployment)
+
+4. **Create Required Tables:**
+   ```bash
+   node scripts/createMissingTables.js
+   ```
+
+5. **Deploy:**
+   ```bash
+   git push origin main
+   ```
+   This triggers GitHub Actions to deploy both frontend and backend.
+
+For detailed deployment instructions, see:
+- [PRE_DEPLOYMENT_CHECKLIST.md](./PRE_DEPLOYMENT_CHECKLIST.md)
+- [GITHUB_ACTIONS_DEPLOYMENT_FIX.md](./GITHUB_ACTIONS_DEPLOYMENT_FIX.md)
+- [FRONTEND_ENV_SETUP.md](./FRONTEND_ENV_SETUP.md)
+
+---
+
+## 🧪 Testing
+
+### Local Testing
+
+1. **Start the backend:**
+   ```bash
    npm run build
    func start
-   cd frontend && npm run dev
    ```
 
-## Environment Variables (local.settings.json)
-- `STRIPE_SECRET_KEY` (your Stripe secret key)
-- `STRIPE_WEBHOOK_SECRET` (your Stripe webhook secret)
-- `PRO_PRICE_ID`, `TEAM_PRICE_ID` (Stripe price IDs)
-- `PUBLIC_APP_URL` (frontend URL or ngrok URL for local; update to your live domain for production)
-- `DISCORD_WEBHOOK_URL` (optional, for alerts)
-- `API_KEY_SEED`, `ADMIN_KEY` (for API authentication)
-- `AzureWebJobsStorage`, `AZURE_STORAGE_CONNECTION_STRING` (Azure Storage)
+2. **Run automated tests:**
+   ```bash
+   export TEST_API_KEY="your_api_key"
+   node test-security.js
+   ```
 
-## API Endpoints (Backend)
-- `POST /api/ingestWebhook` — Ingest webhook events
-- `POST /api/billing/create-checkout` — Create Stripe checkout session
-- `POST /api/billing/customer-portal` — Stripe customer portal
-- `POST /api/billing/apply-plan` — Apply plan to tenant
-- `GET /api/tenant/plan` — Get current plan for tenant
-- `POST /api/alertWebhook` — Send alert to Discord (optional)
-- `GET/POST/DELETE /api/webhook/endpoints` — Manage webhook endpoints
+3. **Manual testing:**
+   See [LOCAL_TESTING_GUIDE.md](./LOCAL_TESTING_GUIDE.md) for comprehensive testing instructions.
 
-## Deployment
+### Test Scripts
 
-See ARCHITECTURE.md and deployment guides for Azure Static Web Apps. Update `PUBLIC_APP_URL` and all webhook/redirect URLs to your live domain before going live.
+- `test-security.js` - Automated security feature tests
+- `scripts/createMissingTables.js` - Create required Azure tables
+- `scripts/seedApiKeyProduction.js` - Create API keys
 
-## License
+For testing documentation, see:
+- [QUICK_TEST_START.md](./QUICK_TEST_START.md)
+- [LOCAL_TESTING_GUIDE.md](./LOCAL_TESTING_GUIDE.md)
+- [TESTING_SUMMARY.md](./TESTING_SUMMARY.md)
 
-MIT. See LICENSE file.
-- `POST /api/billing/customer-portal` — Stripe customer portal
-- `POST /api/billing/apply-plan` — Apply plan to tenant
-- `POST /api/setPlanAdmin` — Admin: set plan
-- `POST /api/billing/stripe-webhook` — Stripe webhook endpoint
-- `GET /api/dashboardEvents` — List events
+---
 
-## Deployment
-- Deploy backend to Azure Functions (or compatible serverless platform)
-- Set all environment variables in your cloud provider’s environment settings
-- (Frontend: to be added)
+## 📁 Project Structure
 
-## Contributing
-Pull requests welcome! Please open issues for bugs or feature requests.
+```
+webhook-monitor/
+├── frontend/                 # React frontend application
+│   ├── src/
+│   │   ├── pages/           # Page components
+│   │   ├── components/      # Reusable components
+│   │   ├── config/          # Configuration
+│   │   ├── utils/           # Utility functions
+│   │   └── firebase.ts      # Firebase setup
+│   └── package.json
+├── src/                      # Backend source code
+│   ├── functions/           # Azure Functions endpoints
+│   │   ├── ingestWebhook.ts      # Main webhook ingestion
+│   │   ├── dashboardEvents.ts    # Event listing
+│   │   ├── billingCreateCheckout.ts
+│   │   ├── stripeWebhook.ts
+│   │   └── ...
+│   ├── lib/                 # Libraries
+│   │   ├── auth.ts          # API key authentication
+│   │   ├── requestSigning.ts # Request signature verification
+│   │   └── rateLimiter.ts  # Rate limiting
+│   ├── shared/              # Shared utilities
+│   │   ├── eventStore.ts    # Event storage
+│   │   ├── securityAudit.ts # Security audit logging
+│   │   └── tenantStore.ts  # Tenant management
+│   └── billing/             # Billing logic
+│       └── stripePlans.ts   # Plan definitions
+├── scripts/                 # Utility scripts
+│   ├── createMissingTables.js
+│   └── seedApiKeyProduction.js
+├── docs/                     # Documentation
+├── .github/workflows/        # GitHub Actions workflows
+└── package.json
+```
 
-## License
-MIT
+---
+
+## 🔧 Development
+
+### Building
+
+```bash
+# Backend
+npm run build
+
+# Frontend
+cd frontend
+npm run build
+```
+
+### Environment Variables
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for a complete list of required environment variables.
+
+### Code Style
+
+- TypeScript strict mode enabled
+- ESLint for code quality
+- Prettier for formatting (recommended)
+
+---
+
+## 📚 Documentation
+
+### Setup & Configuration
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture overview
+- [STORAGE_ARCHITECTURE.md](./STORAGE_ARCHITECTURE.md) - Storage design
+- [STORAGE_CONFIGURATION_GUIDE.md](./STORAGE_CONFIGURATION_GUIDE.md) - Storage setup
+- [AZURE_FUNCTIONS_SETUP.md](./AZURE_FUNCTIONS_SETUP.md) - Azure setup
+
+### Security
+- [SECURITY_ENHANCEMENT_PLAN.md](./SECURITY_ENHANCEMENT_PLAN.md) - Security roadmap
+- [QUICK_WINS_IMPLEMENTATION.md](./QUICK_WINS_IMPLEMENTATION.md) - Security features
+
+### Deployment
+- [PRE_DEPLOYMENT_CHECKLIST.md](./PRE_DEPLOYMENT_CHECKLIST.md) - Deployment checklist
+- [GITHUB_ACTIONS_DEPLOYMENT_FIX.md](./GITHUB_ACTIONS_DEPLOYMENT_FIX.md) - Deployment guide
+- [FRONTEND_ENV_SETUP.md](./FRONTEND_ENV_SETUP.md) - Frontend setup
+- [GITHUB_SECRETS_CHECKLIST.md](./GITHUB_SECRETS_CHECKLIST.md) - Secrets checklist
+
+### Testing
+- [LOCAL_TESTING_GUIDE.md](./LOCAL_TESTING_GUIDE.md) - Comprehensive testing guide
+- [QUICK_TEST_START.md](./QUICK_TEST_START.md) - Quick start testing
+- [TESTING_SUMMARY.md](./TESTING_SUMMARY.md) - Test results
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- Built with [Azure Functions](https://azure.microsoft.com/services/functions/)
+- Frontend powered by [React](https://reactjs.org/) and [Vite](https://vitejs.dev/)
+- Billing powered by [Stripe](https://stripe.com/)
+- Authentication powered by [Firebase](https://firebase.google.com/)
+
+---
+
+## 📞 Support
+
+For issues, questions, or contributions, please open an issue on GitHub.
+
+---
+
+**Made with ❤️ for reliable webhook monitoring**

@@ -31,28 +31,100 @@ export const validateApiKey = (apiKey: string): ApiKeyData | null => {
   };
 };
 import { TableClient } from "@azure/data-tables";
+import { logSecurityEvent, getClientIp } from "../shared/securityAudit";
 
 const apiKeysTable = TableClient.fromConnectionString(
   process.env.AzureWebJobsStorage!,
   "ApiKeys"
 );
 
-export async function authenticateApiKey(apiKey?: string): Promise<{
+export async function authenticateApiKey(
+  apiKey?: string,
+  request?: any,
+  endpoint?: string
+): Promise<{
   tenantId: string;
   plan: string;
 } | null> {
-  if (!apiKey) return null;
+  if (!apiKey) {
+    if (request) {
+      await logSecurityEvent({
+        eventType: "auth_failure",
+        ipAddress: getClientIp(request),
+        userAgent: request.headers?.get("user-agent"),
+        endpoint,
+        errorMessage: "Missing API key",
+      });
+    }
+    return null;
+  }
 
   try {
     const entity = await apiKeysTable.getEntity("tenant", apiKey);
 
-    if (entity.active !== true) return null;
+    if (entity.active !== true) {
+      if (request) {
+        await logSecurityEvent({
+          eventType: "auth_failure",
+          tenantId: entity.tenantId as string | undefined,
+          apiKey,
+          ipAddress: getClientIp(request),
+          userAgent: request.headers?.get("user-agent"),
+          endpoint,
+          errorMessage: "API key is inactive",
+        });
+      }
+      return null;
+    }
+
+    // Check if API key has expired
+    const expiresAt = entity.expiresAt as string | undefined;
+    if (expiresAt) {
+      const expirationDate = new Date(expiresAt);
+      if (expirationDate < new Date()) {
+        // Key has expired
+        if (request) {
+          await logSecurityEvent({
+            eventType: "auth_expired",
+            tenantId: entity.tenantId as string | undefined,
+            apiKey,
+            ipAddress: getClientIp(request),
+            userAgent: request.headers?.get("user-agent"),
+            endpoint,
+            errorMessage: "API key has expired",
+          });
+        }
+        return null;
+      }
+    }
+
+    // Log successful authentication
+    if (request) {
+      await logSecurityEvent({
+        eventType: "auth_success",
+        tenantId: entity.tenantId as string,
+        apiKey,
+        ipAddress: getClientIp(request),
+        userAgent: request.headers?.get("user-agent"),
+        endpoint,
+      });
+    }
 
     return {
       tenantId: entity.tenantId as string,
       plan: (entity.plan as string) ?? "free"
     };
-  } catch {
+  } catch (error: any) {
+    if (request) {
+      await logSecurityEvent({
+        eventType: "auth_failure",
+        apiKey,
+        ipAddress: getClientIp(request),
+        userAgent: request.headers?.get("user-agent"),
+        endpoint,
+        errorMessage: error.message || "Authentication error",
+      });
+    }
     return null;
   }
 }
