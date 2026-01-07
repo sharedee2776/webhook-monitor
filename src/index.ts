@@ -22,6 +22,9 @@ import './functions/tenantPlan';
 import './functions/adminSetPlan';
 import './functions/webhookEndpoints';
 import './functions/discordWebhook';
+import './functions/auditLogs';
+import './functions/initializeTenant';
+import './functions/listApiKeys';
 
 // Import timer trigger functions
 import './functions/uptimeCheck';

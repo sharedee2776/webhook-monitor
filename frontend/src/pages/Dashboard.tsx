@@ -22,7 +22,6 @@ import { auth } from '../firebase';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 
 const Dashboard: React.FC = () => {
-  const [plan, setPlan] = React.useState<string | null>(null);
   const [loadingPlan, setLoadingPlan] = React.useState(true);
   const [planError, setPlanError] = React.useState('');
   const [user, setUser] = React.useState<User | null>(null);
@@ -84,8 +83,7 @@ const Dashboard: React.FC = () => {
         }
         return res.json();
       })
-      .then(data => {
-        setPlan(data.plan);
+      .then(() => {
         setPlanError('');
       })
       .catch((error) => {
@@ -118,11 +116,6 @@ const Dashboard: React.FC = () => {
                 <p>Your tenant ID: <code style={{ background: '#fff', padding: '0.2rem 0.4rem', borderRadius: 4 }}>{tenantId}</code></p>
               </div>
             )}
-          </div>
-        )}
-        {user && plan && (
-          <div style={{ fontSize: '1.2em', margin: '1rem 0' }}>
-            Current Plan: <strong style={{ color: plan === 'free' ? '#888' : plan === 'pro' ? '#4f46e5' : '#0ea5e9' }}>{plan.toUpperCase()}</strong>
           </div>
         )}
         {user && (
