@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import OnboardingModal from '../components/OnboardingModal';
-import { ChartBar, Shield, Lightning, Users, CheckCircle, ArrowRight } from '@phosphor-icons/react';
+import { ChartBar, Shield, Lightning, Users, CheckCircle, ArrowRight, TrendUp, Database } from '@phosphor-icons/react';
 import { auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
@@ -179,8 +179,144 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
+      {/* Why Choose Us Section */}
       <section style={{ padding: '4rem 2rem', background: '#f8fafc' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <h2 style={{ textAlign: 'center', fontSize: '2.5rem', marginBottom: '1rem', color: '#222' }}>
+            Why Choose Webhook Monitor?
+          </h2>
+          <p style={{ textAlign: 'center', fontSize: '1.1rem', color: '#666', marginBottom: '3rem', maxWidth: 700, margin: '0 auto 3rem' }}>
+            While tools like webhook.site, Hooklistener, and WebhookDebugger are great for quick testing, 
+            Webhook Monitor is built for production teams who need reliability, history, and collaboration.
+          </p>
+          
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '2rem',
+            marginBottom: '3rem'
+          }}>
+            <div className="card" style={{ padding: '2rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                <div style={{ 
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+                  borderRadius: '12px', 
+                  padding: '0.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Database size={28} color="#fff" />
+                </div>
+                <h3 style={{ fontSize: '1.3rem', color: '#222', margin: 0 }}>Extended Event History</h3>
+              </div>
+              <p style={{ color: '#666', lineHeight: 1.7, marginBottom: '1rem' }}>
+                Unlike free tools that delete events after 7 days, we retain your webhook history for up to 90 days 
+                (depending on your plan), giving you time to debug issues and analyze patterns.
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--success)', fontSize: '0.95rem' }}>
+                <CheckCircle size={18} weight="fill" />
+                <span>90-day retention on Pro plans</span>
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: '2rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                <div style={{ 
+                  background: 'linear-gradient(135deg, #2d6cdf 0%, #1a417a 100%)', 
+                  borderRadius: '12px', 
+                  padding: '0.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Users size={28} color="#fff" />
+                </div>
+                <h3 style={{ fontSize: '1.3rem', color: '#222', margin: 0 }}>Team Collaboration</h3>
+              </div>
+              <p style={{ color: '#666', lineHeight: 1.7, marginBottom: '1rem' }}>
+                Built for teams from day one. Share API keys securely, manage roles, and collaborate on webhook monitoring. 
+                Most alternatives are single-user tools.
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--success)', fontSize: '0.95rem' }}>
+                <CheckCircle size={18} weight="fill" />
+                <span>Role-based access control</span>
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: '2rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                <div style={{ 
+                  background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', 
+                  borderRadius: '12px', 
+                  padding: '0.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <TrendUp size={28} color="#fff" />
+                </div>
+                <h3 style={{ fontSize: '1.3rem', color: '#222', margin: 0 }}>Advanced Analytics</h3>
+              </div>
+              <p style={{ color: '#666', lineHeight: 1.7, marginBottom: '1rem' }}>
+                Go beyond simple event viewing. Get usage analytics, performance metrics, failure rates, 
+                and insights that help you optimize your webhook infrastructure.
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--success)', fontSize: '0.95rem' }}>
+                <CheckCircle size={18} weight="fill" />
+                <span>Real-time dashboards & charts</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="card" style={{ 
+            padding: '2rem', 
+            background: 'linear-gradient(135deg, rgba(45,108,223,0.05) 0%, rgba(102,126,234,0.05) 100%)',
+            border: '2px solid rgba(45,108,223,0.1)'
+          }}>
+            <h3 style={{ fontSize: '1.5rem', color: '#222', marginBottom: '1.5rem', textAlign: 'center' }}>
+              What Makes Us Unique?
+            </h3>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '1.5rem'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                <CheckCircle size={20} style={{ color: 'var(--success)', flexShrink: 0, marginTop: '0.2rem' }} weight="fill" />
+                <div>
+                  <strong style={{ color: '#222', display: 'block', marginBottom: '0.3rem' }}>Enterprise Security</strong>
+                  <span style={{ color: '#666', fontSize: '0.95rem' }}>API key rotation, audit logs, IP whitelisting</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                <CheckCircle size={20} style={{ color: 'var(--success)', flexShrink: 0, marginTop: '0.2rem' }} weight="fill" />
+                <div>
+                  <strong style={{ color: '#222', display: 'block', marginBottom: '0.3rem' }}>Smart Alerting</strong>
+                  <span style={{ color: '#666', fontSize: '0.95rem' }}>Email, Discord, and webhook notifications</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                <CheckCircle size={20} style={{ color: 'var(--success)', flexShrink: 0, marginTop: '0.2rem' }} weight="fill" />
+                <div>
+                  <strong style={{ color: '#222', display: 'block', marginBottom: '0.3rem' }}>Webhook Replay</strong>
+                  <span style={{ color: '#666', fontSize: '0.95rem' }}>Retry failed events with one click</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                <CheckCircle size={20} style={{ color: 'var(--success)', flexShrink: 0, marginTop: '0.2rem' }} weight="fill" />
+                <div>
+                  <strong style={{ color: '#222', display: 'block', marginBottom: '0.3rem' }}>Production Ready</strong>
+                  <span style={{ color: '#666', fontSize: '0.95rem' }}>99.9% uptime SLA, scalable infrastructure</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section style={{ padding: '4rem 2rem', background: '#fff' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <h2 style={{ textAlign: 'center', fontSize: '2.5rem', marginBottom: '1rem', color: '#222' }}>
             Simple, Transparent Pricing
