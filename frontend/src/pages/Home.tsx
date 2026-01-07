@@ -327,8 +327,9 @@ const Home: React.FC = () => {
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '2rem',
-            marginTop: '2rem'
+            gap: '2.5rem',
+            marginTop: '2rem',
+            alignItems: 'stretch'
           }}>
             {plans.map((plan, idx) => (
               <div
@@ -338,22 +339,33 @@ const Home: React.FC = () => {
                   textAlign: 'center',
                   padding: '2.5rem 2rem',
                   border: plan.highlight ? '3px solid var(--primary)' : '1px solid var(--border)',
-                  transform: plan.highlight ? 'scale(1.05)' : 'scale(1)',
-                  position: 'relative'
+                  position: 'relative',
+                  boxShadow: plan.highlight 
+                    ? '0 8px 24px rgba(102, 126, 234, 0.25)' 
+                    : '0 2px 8px rgba(0, 0, 0, 0.08)',
+                  background: plan.highlight 
+                    ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%)' 
+                    : 'var(--surface)',
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%'
                 }}
               >
                 {plan.highlight && (
                   <div style={{
                     position: 'absolute',
-                    top: '-12px',
+                    top: '-14px',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    background: 'var(--primary)',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     color: '#fff',
-                    padding: '0.3rem 1rem',
+                    padding: '0.4rem 1.25rem',
                     borderRadius: '1rem',
                     fontSize: '0.85rem',
-                    fontWeight: 600
+                    fontWeight: 600,
+                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                    zIndex: 10
                   }}>
                     Most Popular
                   </div>
@@ -371,7 +383,8 @@ const Home: React.FC = () => {
                   listStyle: 'none',
                   padding: 0,
                   margin: '1.5rem 0',
-                  textAlign: 'left'
+                  textAlign: 'left',
+                  flex: 1
                 }}>
                   {plan.features.map((feature, fIdx) => (
                     <li key={fIdx} style={{
@@ -390,10 +403,39 @@ const Home: React.FC = () => {
                   className="btn"
                   style={{
                     width: '100%',
-                    marginTop: '1rem',
-                    background: plan.highlight ? 'var(--primary)' : 'var(--surface)',
+                    marginTop: 'auto',
+                    padding: '0.875rem 1.5rem',
+                    background: plan.highlight 
+                      ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
+                      : 'var(--surface)',
                     color: plan.highlight ? '#fff' : 'var(--primary)',
-                    border: plan.highlight ? 'none' : '2px solid var(--primary)'
+                    border: plan.highlight ? 'none' : '2px solid var(--primary)',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    fontWeight: 600,
+                    display: 'inline-block',
+                    transition: 'all 0.2s ease',
+                    boxShadow: plan.highlight 
+                      ? '0 4px 12px rgba(102, 126, 234, 0.3)' 
+                      : 'none'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (plan.highlight) {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)';
+                    } else {
+                      e.currentTarget.style.background = 'var(--primary)';
+                      e.currentTarget.style.color = '#fff';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (plan.highlight) {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+                    } else {
+                      e.currentTarget.style.background = 'var(--surface)';
+                      e.currentTarget.style.color = 'var(--primary)';
+                    }
                   }}
                   onClick={(e) => {
                     if (!user && plan.name !== 'Free') {
