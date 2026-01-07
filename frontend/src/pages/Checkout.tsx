@@ -5,8 +5,8 @@ const SUPPORT_EMAIL = 'damoladauda10@gmail.com';
 
 const plans = [
   { id: 'free', name: 'Free', price: 0, description: 'Free plan with limited features.' },
-  { id: 'pro', name: 'Pro', price: 19, description: 'Pro plan with advanced features.' },
-  { id: 'team', name: 'Team', price: 49, description: 'Team plan for teams and enterprises.' },
+  { id: 'pro', name: 'Pro', price: 29, description: 'Pro plan with advanced features.' },
+  { id: 'team', name: 'Team', price: 99, description: 'Team plan for teams and enterprises.' },
 ];
 
 const Checkout: React.FC = () => {

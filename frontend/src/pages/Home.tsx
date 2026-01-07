@@ -50,7 +50,7 @@ const Home: React.FC = () => {
     },
     {
       name: 'Pro',
-      price: '$19',
+      price: '$29',
       period: '/month',
       features: ['100,000 events/month', '5 API keys', 'Advanced analytics', 'Priority support', 'Audit logs'],
       cta: 'Start Pro Trial',
@@ -58,7 +58,7 @@ const Home: React.FC = () => {
     },
     {
       name: 'Team',
-      price: '$49',
+      price: '$99',
       period: '/month',
       features: ['1,000,000 events/month', '20 API keys', 'Team collaboration', 'Dedicated support', 'Custom integrations'],
       cta: 'Contact Sales',
