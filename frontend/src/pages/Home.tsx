@@ -326,18 +326,20 @@ const Home: React.FC = () => {
           </p>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
             gap: '2.5rem',
             marginTop: '2rem',
-            alignItems: 'stretch'
+            alignItems: 'stretch',
+            gridAutoRows: '1fr',
+            overflow: 'visible',
           }}>
             {plans.map((plan, idx) => (
               <div
                 key={idx}
-                className="card"
+                className="card pricing-card"
                 style={{
                   textAlign: 'center',
-                  padding: '2.5rem 2rem',
+                  padding: plan.highlight ? '4.5rem 2rem 2.5rem 2rem' : '2.5rem 2rem', // more top padding for badge
                   border: plan.highlight ? '3px solid var(--primary)' : '1px solid var(--border)',
                   position: 'relative',
                   boxShadow: plan.highlight 
@@ -349,23 +351,29 @@ const Home: React.FC = () => {
                   transition: 'all 0.3s ease',
                   display: 'flex',
                   flexDirection: 'column',
-                  height: '100%'
+                  height: '100%',
+                  minHeight: 420,
+                  overflow: 'visible',
                 }}
               >
-                {plan.highlight && (
+                {/* Only show badge for Pro plan */}
+                {plan.name === 'Pro' && (
                   <div style={{
                     position: 'absolute',
-                    top: '-14px',
+                    top: '-28px',
                     left: '50%',
                     transform: 'translateX(-50%)',
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     color: '#fff',
-                    padding: '0.4rem 1.25rem',
+                    padding: '0.5rem 1.5rem',
                     borderRadius: '1rem',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
+                    fontSize: '1rem',
+                    fontWeight: 700,
                     boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
-                    zIndex: 10
+                    zIndex: 30,
+                    minWidth: '140px',
+                    textAlign: 'center',
+                    letterSpacing: '0.5px',
                   }}>
                     Most Popular
                   </div>
