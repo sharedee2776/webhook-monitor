@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 const Signup: React.FC = () => {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
+	const [rememberMe, setRememberMe] = useState(false);
 	const [error, setError] = useState('');
 	const [submitted, setSubmitted] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -22,6 +23,15 @@ const Signup: React.FC = () => {
 			
 			// Send email verification
 			await sendEmailVerification(user);
+			
+			// Handle "Remember Me" functionality
+			if (rememberMe) {
+				localStorage.setItem('savedEmail', email);
+				localStorage.setItem('savedPassword', password);
+			} else {
+				localStorage.removeItem('savedEmail');
+				localStorage.removeItem('savedPassword');
+			}
 			
 			setSubmitted(true);
 			// Show verification message instead of redirecting immediately
@@ -152,8 +162,20 @@ const Signup: React.FC = () => {
 							style={{ width: '100%', padding: '0.5rem' }}
 						/>
 					</div>
-					{error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
-					<button type="submit" style={{ padding: '0.5rem 2rem' }} disabled={loading}>
+					<div style={{ marginBottom: '1rem', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+						<input
+							type="checkbox"
+							id="rememberMeSignup"
+							checked={rememberMe}
+							onChange={e => setRememberMe(e.target.checked)}
+							style={{ cursor: 'pointer' }}
+						/>
+						<label htmlFor="rememberMeSignup" style={{ cursor: 'pointer', fontSize: '0.9rem', color: '#666' }}>
+							Remember me (save username & password)
+						</label>
+					</div>
+					{error && <div style={{ color: 'red', marginBottom: '1rem', padding: '0.75rem', background: '#ffebee', borderRadius: '4px' }}>{error}</div>}
+					<button type="submit" style={{ padding: '0.5rem 2rem', width: '100%' }} disabled={loading}>
 						{loading ? 'Signing up...' : 'Sign Up'}
 					</button>
 				</form>
