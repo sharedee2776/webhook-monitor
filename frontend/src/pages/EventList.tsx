@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import apiConfig from '../config/api';
 import SkeletonTable from '../components/SkeletonTable';
-import { CheckCircle, WarningCircle } from '@phosphor-icons/react';
+import { CheckCircle, WarningCircle, ListChecks } from '@phosphor-icons/react';
 import { handleApiResponse, handleError } from '../utils/errorHandler';
 
 const EventList: React.FC = () => {
@@ -64,9 +64,36 @@ const EventList: React.FC = () => {
         ) : filteredEvents.length === 0 ? (
           <tbody>
             <tr>
-              <td colSpan={5} style={{ textAlign: 'center', padding: '3rem 1rem', color: '#666' }}>
-                <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>No events yet.</p>
-                <p style={{ fontSize: '0.9rem' }}>Start sending webhooks to see them here!</p>
+              <td colSpan={5} style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+                <div style={{ 
+                  background: '#f8f9fa', 
+                  borderRadius: 12, 
+                  padding: '2rem',
+                  border: '2px dashed #dee2e6',
+                  maxWidth: 500,
+                  margin: '0 auto'
+                }}>
+                  <ListChecks size={48} style={{ color: '#6c757d', marginBottom: '1rem' }} />
+                  <p style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: '#222', fontWeight: 600 }}>
+                    {filter ? `No ${filter} events found` : 'No events yet'}
+                  </p>
+                  <p style={{ fontSize: '0.95rem', color: '#666', marginBottom: '1.5rem' }}>
+                    {filter 
+                      ? 'Try adjusting your filter or check back later for new events.'
+                      : 'Start sending webhooks to your endpoints to see events appear here in real-time!'
+                    }
+                  </p>
+                  {!filter && (
+                    <div style={{ fontSize: '0.9rem', color: '#666', textAlign: 'left', maxWidth: 300, margin: '0 auto' }}>
+                      <strong>Quick start:</strong>
+                      <ol style={{ marginTop: '0.5rem', paddingLeft: '1.5rem' }}>
+                        <li>Get your API key</li>
+                        <li>Create a webhook endpoint</li>
+                        <li>Send a test webhook</li>
+                      </ol>
+                    </div>
+                  )}
+                </div>
               </td>
             </tr>
           </tbody>
