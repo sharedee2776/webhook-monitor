@@ -20,8 +20,10 @@ import AuditLogs from '../components/AuditLogs';
 import UptimeRobotStatus from '../components/UptimeRobotStatus';
 import { auth } from '../firebase';
 import { onAuthStateChanged, type User } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [loadingPlan, setLoadingPlan] = React.useState(true);
   const [planError, setPlanError] = React.useState('');
   const [user, setUser] = React.useState<User | null>(null);
@@ -29,8 +31,14 @@ const Dashboard: React.FC = () => {
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
       if (firebaseUser) {
+        // Check if email is verified
+        if (!firebaseUser.emailVerified) {
+          // Redirect to login with message
+          navigate('/login?verify=required');
+          return;
+        }
+        setUser(firebaseUser);
         // Use Firebase UID as tenant ID, or get from localStorage as fallback
         const storedTenantId = localStorage.getItem('tenantId') || firebaseUser.uid;
         setTenantId(storedTenantId);
@@ -39,13 +47,14 @@ const Dashboard: React.FC = () => {
           localStorage.setItem('tenantId', storedTenantId);
         }
       } else {
+        setUser(null);
         setTenantId('');
         setLoadingPlan(false);
         setPlanError('Please sign in to view your plan.');
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [navigate]);
 
   React.useEffect(() => {
     if (!user || !tenantId) {

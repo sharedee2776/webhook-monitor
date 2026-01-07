@@ -1,29 +1,58 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, GithubAuthProvider } from 'firebase/auth';
 import { auth } from '../firebase';
 
 const SignIn: React.FC = () => {
-  // Load saved email from localStorage
+  const [searchParams] = useSearchParams();
+  // Load saved email and password from localStorage if "Remember Me" was checked
   const [email, setEmail] = useState(() => {
     const savedEmail = localStorage.getItem('savedEmail');
     return savedEmail || '';
   });
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState(() => {
+    const savedPassword = localStorage.getItem('savedPassword');
+    return savedPassword || '';
+  });
+  const [rememberMe, setRememberMe] = useState(() => {
+    return !!localStorage.getItem('savedPassword');
+  });
+  // setRememberMe is used in the checkbox onChange handler
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if redirected from dashboard due to unverified email
+    if (searchParams.get('verify') === 'required') {
+      setError('Please verify your email address before accessing the dashboard. Check your inbox for the verification link.');
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      // Save email to localStorage for next time
-      if (email) {
-        localStorage.setItem('savedEmail', email);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      // Check if email is verified
+      if (!user.emailVerified) {
+        setError('Please verify your email address. Check your inbox for the verification link.');
+        setLoading(false);
+        return;
       }
+
+      // Handle "Remember Me" functionality
+      if (rememberMe) {
+        localStorage.setItem('savedEmail', email);
+        localStorage.setItem('savedPassword', password);
+      } else {
+        localStorage.removeItem('savedEmail');
+        localStorage.removeItem('savedPassword');
+      }
+      
       // Set session storage for this browser session
       sessionStorage.setItem('userSession', 'active');
       navigate('/dashboard');
@@ -53,6 +82,7 @@ const SignIn: React.FC = () => {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
+      sessionStorage.setItem('userSession', 'active');
       navigate('/dashboard');
     } catch (err: any) {
       console.error('Google sign-in error:', err);
@@ -116,8 +146,20 @@ const SignIn: React.FC = () => {
             style={{ width: '100%', padding: '0.5rem' }}
           />
         </div>
-        {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
-        <button type="submit" style={{ padding: '0.5rem 2rem' }} disabled={loading}>
+        <div style={{ marginBottom: '1rem', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <input
+            type="checkbox"
+            id="rememberMe"
+            checked={rememberMe}
+            onChange={e => setRememberMe(e.target.checked)}
+            style={{ cursor: 'pointer' }}
+          />
+          <label htmlFor="rememberMe" style={{ cursor: 'pointer', fontSize: '0.9rem', color: '#666' }}>
+            Remember me (save username & password)
+          </label>
+        </div>
+        {error && <div style={{ color: 'red', marginBottom: '1rem', padding: '0.75rem', background: '#ffebee', borderRadius: '4px' }}>{error}</div>}
+        <button type="submit" style={{ padding: '0.5rem 2rem', width: '100%' }} disabled={loading}>
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>

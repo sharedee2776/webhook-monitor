@@ -11,6 +11,9 @@ import Checkout from './pages/Checkout';
 import Success from './pages/Success';
 import Cancel from './pages/Cancel';
 import PlanDetails from './pages/PlanDetails';
+import Docs from './pages/Docs';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import UserProfileMenu from './components/UserProfileMenu';
 import './App.css';
 import { useEffect, useState } from 'react';
@@ -68,15 +71,9 @@ function App() {
         <Link to="/" style={{ color: '#fff', fontWeight: 600, fontSize: '1.1rem' }}>Home</Link>
         {user && <Link to="/dashboard" style={{ color: '#fff' }}>Dashboard</Link>}
         {user && <Link to="/checkout" style={{ color: '#fff' }}>Pricing</Link>}
-        <a 
-          href="https://github.com/sharedee2776/webhook-monitor" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          style={{ color: '#fff', textDecoration: 'none' }}
-          title="Documentation & Help"
-        >
+        <Link to="/docs" style={{ color: '#fff', textDecoration: 'none' }}>
           Docs
-        </a>
+        </Link>
         {!user && (
           <>
             <Link to="/signup" style={{ color: '#fff', background: 'var(--primary)', padding: '0.5rem 1.5rem', borderRadius: '0.5rem', fontWeight: 600 }}>Sign Up</Link>
@@ -98,13 +95,25 @@ function App() {
         <Route path="/success" element={<Success />} />
         <Route path="/cancel" element={<Cancel />} />
         <Route path="/plan-details" element={<PlanDetails />} />
+        <Route path="/docs" element={<Docs />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
       </Routes>
       <DarkModeToggle />
 
-      <footer style={{ marginTop: 40, padding: '1.5rem 0', background: '#f8fafc', color: '#222', textAlign: 'center', fontSize: '1.08rem', borderTop: '1px solid #e0e7ef' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <span>Built by <strong>Adedamola</strong> &middot; &copy; {new Date().getFullYear()} Webhook Monitor</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: '0.5rem' }}>
+      <footer style={{ marginTop: 40, padding: '2rem 1rem', background: '#f8fafc', color: '#222', textAlign: 'center', fontSize: '1.08rem', borderTop: '1px solid #e0e7ef' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap', fontSize: '0.95rem' }}>
+              <Link to="/docs" style={{ color: '#666', textDecoration: 'none' }}>Documentation</Link>
+              <Link to="/privacy" style={{ color: '#666', textDecoration: 'none' }}>Privacy Policy</Link>
+              <Link to="/terms" style={{ color: '#666', textDecoration: 'none' }}>Terms of Service</Link>
+              <a href="mailto:damoladauda10@gmail.com" style={{ color: '#666', textDecoration: 'none' }}>Contact</a>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <span>Built by <strong>Adedamola</strong> &middot; &copy; {new Date().getFullYear()} Webhook Monitor</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: '0.5rem' }}>
             <a
               href="https://github.com/sharedee2776"
               target="_blank"
@@ -163,6 +172,7 @@ function App() {
               </svg>
             </a>
           </div>
+        </div>
         </div>
       </footer>
     </BrowserRouter>
