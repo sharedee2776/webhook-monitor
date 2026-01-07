@@ -7,6 +7,7 @@ import RoleAccessControl from '../components/RoleAccessControl';
 import NotificationCenter from '../components/NotificationCenter';
 import WebhookEndpoints from '../components/WebhookEndpoints';
 import EventSearchFilter from '../components/EventSearchFilter';
+import DashboardStats from '../components/DashboardStats';
 
 import EventList from './EventList';
 import UsageAnalytics from './UsageAnalytics';
@@ -15,7 +16,7 @@ import TeamManagement from './TeamManagement';
 import ApiKeyManagement from './ApiKeyManagement';
 import AlertConfig from './AlertConfig';
 import DiscordIntegration from './DiscordIntegration';
-import { ChartBar, Key, Bell, Users, DiscordLogo, MagnifyingGlass, ArrowClockwise, ListChecks, LockKey, Info } from '@phosphor-icons/react';
+import { ChartBar, Key, Bell, Users, DiscordLogo, MagnifyingGlass, ArrowClockwise, ListChecks, LockKey, Info, Plus, Rocket, FileText, Plug } from '@phosphor-icons/react';
 import AuditLogs from '../components/AuditLogs';
 import UptimeRobotStatus from '../components/UptimeRobotStatus';
 import { auth } from '../firebase';
@@ -101,9 +102,175 @@ const Dashboard: React.FC = () => {
       })
       .finally(() => setLoadingPlan(false));
   }, [user, tenantId]);
+  const apiKey = localStorage.getItem('apiKey');
+  const hasApiKey = !!apiKey;
+
   return (
-    <div style={{ maxWidth: 1100, margin: '3rem auto', padding: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div style={{ maxWidth: 1200, margin: '2rem auto', padding: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <UptimeRobotStatus />
+      
+      {/* Key Metrics - What Matters in 5 Seconds */}
+      {user && <DashboardStats />}
+
+      {/* Clear CTAs - Quick Actions */}
+      {user && (
+        <div className="card" style={{ 
+          background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)',
+          border: '1px solid #e0e7ff',
+          padding: '1.5rem'
+        }}>
+          <h2 style={{ fontSize: '1.3rem', marginBottom: '1rem', color: '#222', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Rocket size={24} /> Quick Actions
+          </h2>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+            gap: '1rem' 
+          }}>
+            {!hasApiKey && (
+              <a 
+                href="#api-keys" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('api-keys')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  padding: '1rem 1.5rem',
+                  background: 'var(--primary)',
+                  color: '#fff',
+                  textDecoration: 'none',
+                  borderRadius: 8,
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  boxShadow: '0 2px 8px rgba(79, 70, 229, 0.3)',
+                  transition: 'transform 0.2s, box-shadow 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(79, 70, 229, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(79, 70, 229, 0.3)';
+                }}
+              >
+                <Key size={20} /> Get API Key
+              </a>
+            )}
+            <a 
+              href="#endpoints" 
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('endpoints')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '1rem 1.5rem',
+                background: hasApiKey ? 'var(--primary)' : '#e5e7eb',
+                color: hasApiKey ? '#fff' : '#9ca3af',
+                textDecoration: 'none',
+                borderRadius: 8,
+                fontWeight: 600,
+                fontSize: '1rem',
+                boxShadow: hasApiKey ? '0 2px 8px rgba(79, 70, 229, 0.3)' : 'none',
+                cursor: hasApiKey ? 'pointer' : 'not-allowed',
+                transition: 'transform 0.2s, box-shadow 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                if (hasApiKey) {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(79, 70, 229, 0.4)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (hasApiKey) {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(79, 70, 229, 0.3)';
+                }
+              }}
+            >
+              <Plus size={20} /> Create Endpoint
+            </a>
+            <a 
+              href="/docs" 
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '1rem 1.5rem',
+                background: '#fff',
+                color: 'var(--primary)',
+                textDecoration: 'none',
+                borderRadius: 8,
+                fontWeight: 600,
+                fontSize: '1rem',
+                border: '2px solid var(--primary)',
+                transition: 'background 0.2s, color 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--primary)';
+                e.currentTarget.style.color = '#fff';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#fff';
+                e.currentTarget.style.color = 'var(--primary)';
+              }}
+            >
+              <FileText size={20} /> View Docs
+            </a>
+            <a 
+              href="#events" 
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('events')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '1rem 1.5rem',
+                background: '#fff',
+                color: 'var(--primary)',
+                textDecoration: 'none',
+                borderRadius: 8,
+                fontWeight: 600,
+                fontSize: '1rem',
+                border: '2px solid var(--primary)',
+                transition: 'background 0.2s, color 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--primary)';
+                e.currentTarget.style.color = '#fff';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#fff';
+                e.currentTarget.style.color = 'var(--primary)';
+              }}
+            >
+              <ListChecks size={20} /> View Events
+            </a>
+          </div>
+          {!hasApiKey && (
+            <div style={{ 
+              marginTop: '1rem', 
+              padding: '0.75rem', 
+              background: '#fff3cd', 
+              borderRadius: 6,
+              fontSize: '0.9rem',
+              color: '#856404'
+            }}>
+              <strong>Getting Started:</strong> Generate an API key to start monitoring webhooks. Then create an endpoint and start sending events!
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Subscription Status */}
       <div className="card" style={{ textAlign: 'center', background: 'linear-gradient(90deg, #f8fafc 60%, #e0e7ff 100%)', border: '1px solid #e0e7ff', boxShadow: '0 2px 8px rgba(100,108,255,0.07)' }}>
         <h2 style={{ fontSize: '1.7rem', marginBottom: 8, color: 'var(--primary)' }}><LockKey size={28} style={{verticalAlign:'middle',marginRight:8}}/> Subscription Status</h2>
         {!user && (
@@ -136,60 +303,140 @@ const Dashboard: React.FC = () => {
           </div>
         )}
       </div>
-      <div className="dashboard-grid">
-        <div className="card"><ListChecks size={22} style={{marginRight:8,verticalAlign:'middle'}}/> <span style={{fontWeight:600}}>Events</span><EventList /></div>
-        <div className="card"><ChartBar size={22} style={{marginRight:8,verticalAlign:'middle'}}/> <span style={{fontWeight:600}}>Usage Analytics</span><UsageAnalytics /></div>
-        <div className="card"><ArrowClockwise size={22} style={{marginRight:8,verticalAlign:'middle'}}/> <span style={{fontWeight:600}}>Webhook Replay</span><WebhookReplay /></div>
-        <div className="card"><Users size={22} style={{marginRight:8,verticalAlign:'middle'}}/> <span style={{fontWeight:600}}>Team Management</span><TeamManagement /></div>
-        <div className="card"><Key size={22} style={{marginRight:8,verticalAlign:'middle'}}/> <span style={{fontWeight:600}}>API Keys</span><ApiKeyManagement /></div>
-        <div className="card"><Bell size={22} style={{marginRight:8,verticalAlign:'middle'}}/> <span style={{fontWeight:600}}>Alert Config</span><AlertConfig /></div>
-        <div className="card"><DiscordLogo size={22} style={{marginRight:8,verticalAlign:'middle'}}/> <span style={{fontWeight:600}}>Discord Integration</span><DiscordIntegration /></div>
-      </div>
-      <div className="card">
-        <h2 style={{display:'flex',alignItems:'center',gap:8}}><Info size={22}/> Product Overview</h2>
-        <ul style={{ textAlign: 'left', maxWidth: 600, margin: '1rem auto', fontSize:'1.08rem', lineHeight:1.7 }}>
-          <li><ListChecks size={18} style={{marginRight:6,verticalAlign:'middle'}}/> <strong>Event Tracking:</strong> Instantly view incoming webhook events from all your integrations.</li>
-          <li><ChartBar size={18} style={{marginRight:6,verticalAlign:'middle'}}/> <strong>Usage Analytics:</strong> Monitor your API usage, event volume, and plan limits.</li>
-          <li><LockKey size={18} style={{marginRight:6,verticalAlign:'middle'}}/> <strong>Plan Management:</strong> Upgrade, downgrade, or view your current subscription plan.</li>
-          <li><Bell size={18} style={{marginRight:6,verticalAlign:'middle'}}/> <strong>Alerting:</strong> Set up alerts for failed or high-latency webhooks.</li>
-          <li><Key size={18} style={{marginRight:6,verticalAlign:'middle'}}/> <strong>API Keys:</strong> Manage and rotate your API keys securely.</li>
-        </ul>
+      {/* Core Features - Grouped by Functionality */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.5rem', color: '#222', marginBottom: '0.5rem' }}>Core Features</h2>
+        
+        {/* Monitoring & Events Section */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+          <div className="card" id="events">
+            <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem'}}>
+              <ListChecks size={22}/> <span style={{fontWeight:600}}>Events</span>
+            </h3>
+            <EventList />
+          </div>
+          <div className="card">
+            <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem'}}>
+              <ChartBar size={22}/> <span style={{fontWeight:600}}>Usage Analytics</span>
+            </h3>
+            <UsageAnalytics />
+          </div>
+        </div>
+
+        {/* Configuration Section */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+          <div className="card" id="api-keys">
+            <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem'}}>
+              <Key size={22}/> <span style={{fontWeight:600}}>API Keys</span>
+            </h3>
+            <ApiKeyManagement />
+          </div>
+          <div className="card" id="endpoints">
+            <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem'}}>
+              <Plug size={22}/> <span style={{fontWeight:600}}>Webhook Endpoints</span>
+            </h3>
+            <WebhookEndpoints />
+          </div>
+        </div>
+
+        {/* Alerts & Notifications Section */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+          <div className="card">
+            <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem'}}>
+              <Bell size={22}/> <span style={{fontWeight:600}}>Alert Config</span>
+            </h3>
+            <AlertConfig />
+          </div>
+          <div className="card">
+            <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem'}}>
+              <DiscordLogo size={22}/> <span style={{fontWeight:600}}>Discord Integration</span>
+            </h3>
+            <DiscordIntegration />
+          </div>
+        </div>
+
+        {/* Tools & Actions Section */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+          <div className="card">
+            <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem'}}>
+              <ArrowClockwise size={22}/> <span style={{fontWeight:600}}>Webhook Replay</span>
+            </h3>
+            <WebhookReplay />
+          </div>
+          <div className="card">
+            <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem'}}>
+              <MagnifyingGlass size={22}/> <span style={{fontWeight:600}}>Event Search & Filter</span>
+            </h3>
+            <EventSearchFilter />
+          </div>
+        </div>
       </div>
 
-      <div className="card">
-        <h2 style={{display:'flex',alignItems:'center',gap:8}}><Info size={22}/> Recent Activity</h2>
-        <AuditLogs />
+      {/* Team & Collaboration Section */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.5rem', color: '#222', marginBottom: '0.5rem' }}>Team & Collaboration</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+          <div className="card">
+            <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem'}}>
+              <Users size={22}/> <span style={{fontWeight:600}}>Team Management</span>
+            </h3>
+            <TeamManagement />
+          </div>
+          <div className="card">
+            <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem'}}>
+              <LockKey size={22}/> <span style={{fontWeight:600}}>Role Access Control</span>
+            </h3>
+            <RoleAccessControl />
+          </div>
+        </div>
       </div>
-      <div className="card">
-        <h2 style={{display:'flex',alignItems:'center',gap:8}}><MagnifyingGlass size={22}/> Recommended Features</h2>
-        <ul style={{ textAlign: 'left', maxWidth: 600, margin: '1rem auto', fontSize:'1.08rem', lineHeight:1.7 }}>
-          <li><MagnifyingGlass size={18} style={{marginRight:6,verticalAlign:'middle'}}/> <strong>Event Search & Filtering:</strong> Quickly find events by status, type, or date.</li>
-          <li><ArrowClockwise size={18} style={{marginRight:6,verticalAlign:'middle'}}/> <strong>Webhook Replay:</strong> Re-send failed events to your endpoints.</li>
-          <li><Users size={18} style={{marginRight:6,verticalAlign:'middle'}}/> <strong>Team Management:</strong> Invite and manage team members with role-based access.</li>
-          <li><ListChecks size={18} style={{marginRight:6,verticalAlign:'middle'}}/> <strong>Audit Logs:</strong> Track changes and access for compliance and security.</li>
-          <li><DiscordLogo size={18} style={{marginRight:6,verticalAlign:'middle'}}/> <strong>Integrations:</strong> Connect with popular services (Slack, Discord, Zapier, etc.).</li>
-        </ul>
+      {/* Analytics & Reports Section */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.5rem', color: '#222', marginBottom: '0.5rem' }}>Analytics & Reports</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+          <div className="card">
+            <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem'}}>
+              <ChartBar size={22}/> <span style={{fontWeight:600}}>Usage Chart</span>
+            </h3>
+            <UsageAnalyticsChart />
+          </div>
+          <div className="card">
+            <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem'}}>
+              <Info size={22}/> <span style={{fontWeight:600}}>Export Data</span>
+            </h3>
+            <ExportData />
+          </div>
+        </div>
       </div>
-      <div className="card">
-        <EventSearchFilter />
+
+      {/* Security & Audit Section */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.5rem', color: '#222', marginBottom: '0.5rem' }}>Security & Audit</h2>
+        <div className="card">
+          <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem'}}>
+            <Info size={22}/> <span style={{fontWeight:600}}>Recent Activity & Audit Logs</span>
+          </h3>
+          <AuditLogs />
+        </div>
       </div>
-      <div className="card">
-        <WebhookEndpoints />
-      </div>
-      <div className="card">
-        <NotificationCenter />
-      </div>
-      <div className="card">
-        <RoleAccessControl />
-      </div>
-      <div className="card">
-        <ExportData />
-      </div>
-      <div className="card">
-        <IntegrationsMarketplace />
-      </div>
-      <div className="card">
-        <UsageAnalyticsChart />
+
+      {/* Notifications & Integrations */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.5rem', color: '#222', marginBottom: '0.5rem' }}>Notifications & Integrations</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+          <div className="card">
+            <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem'}}>
+              <Bell size={22}/> <span style={{fontWeight:600}}>Notification Center</span>
+            </h3>
+            <NotificationCenter />
+          </div>
+          <div className="card">
+            <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem'}}>
+              <DiscordLogo size={22}/> <span style={{fontWeight:600}}>Integrations Marketplace</span>
+            </h3>
+            <IntegrationsMarketplace />
+          </div>
+        </div>
       </div>
       <div className="card">
         <h2>Documentation & Support</h2>
