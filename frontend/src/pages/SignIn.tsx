@@ -4,7 +4,11 @@ import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, Github
 import { auth } from '../firebase';
 
 const SignIn: React.FC = () => {
-  const [email, setEmail] = useState('');
+  // Load saved email from localStorage
+  const [email, setEmail] = useState(() => {
+    const savedEmail = localStorage.getItem('savedEmail');
+    return savedEmail || '';
+  });
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,6 +20,12 @@ const SignIn: React.FC = () => {
     setError('');
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      // Save email to localStorage for next time
+      if (email) {
+        localStorage.setItem('savedEmail', email);
+      }
+      // Set session storage for this browser session
+      sessionStorage.setItem('userSession', 'active');
       navigate('/dashboard');
     } catch (err: any) {
       console.error('Sign in error:', err);
@@ -64,6 +74,7 @@ const SignIn: React.FC = () => {
     try {
       const provider = new GithubAuthProvider();
       await signInWithPopup(auth, provider);
+      sessionStorage.setItem('userSession', 'active');
       navigate('/dashboard');
     } catch (err: any) {
       console.error('GitHub sign-in error:', err);

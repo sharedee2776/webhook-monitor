@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, GithubAuthProvider } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, sendEmailVerification } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,10 +17,14 @@ const Signup: React.FC = () => {
 		setLoading(true);
 		setError('');
 		try {
-			await createUserWithEmailAndPassword(auth, email, password);
+			const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+			const user = userCredential.user;
+			
+			// Send email verification
+			await sendEmailVerification(user);
+			
 			setSubmitted(true);
-			// Redirect to dashboard after successful signup
-			setTimeout(() => navigate('/dashboard'), 2000);
+			// Show verification message instead of redirecting immediately
 		} catch (err: any) {
 			console.error('Sign up error:', err);
 			if (err.code === 'auth/email-already-in-use') {
@@ -43,6 +47,7 @@ const Signup: React.FC = () => {
 		try {
 			const provider = new GoogleAuthProvider();
 			await signInWithPopup(auth, provider);
+			sessionStorage.setItem('userSession', 'active');
 			setSubmitted(true);
 			setTimeout(() => navigate('/dashboard'), 1000);
 		} catch (err: any) {
@@ -65,6 +70,7 @@ const Signup: React.FC = () => {
 		try {
 			const provider = new GithubAuthProvider();
 			await signInWithPopup(auth, provider);
+			sessionStorage.setItem('userSession', 'active');
 			setSubmitted(true);
 			setTimeout(() => navigate('/dashboard'), 1000);
 		} catch (err: any) {
@@ -85,9 +91,43 @@ const Signup: React.FC = () => {
 		<div style={{ maxWidth: 400, margin: '3rem auto', textAlign: 'center' }}>
 			<h2>Sign Up</h2>
 			{submitted ? (
-				<div>
-					<p style={{ color: 'green' }}>Thank you for signing up, {email}!</p>
-					<p>Redirecting to dashboard...</p>
+				<div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
+					<div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✉️</div>
+					<h3 style={{ color: '#222', marginBottom: '1rem' }}>Verify Your Email</h3>
+					<p style={{ color: '#666', marginBottom: '1rem', lineHeight: 1.6 }}>
+						We've sent a verification link to <strong>{email}</strong>
+					</p>
+					<p style={{ color: '#666', marginBottom: '1.5rem', fontSize: '0.95rem', lineHeight: 1.6 }}>
+						Please check your inbox and click the verification link to activate your account. 
+						If you don't see the email, check your spam folder.
+					</p>
+					<div style={{ 
+						background: '#f0f7ff', 
+						padding: '1rem', 
+						borderRadius: '8px', 
+						marginBottom: '1.5rem',
+						border: '1px solid #b3d9ff'
+					}}>
+						<p style={{ margin: 0, fontSize: '0.9rem', color: '#0066cc' }}>
+							<strong>Note:</strong> You can sign in after verifying your email. 
+							The verification link will expire in 24 hours.
+						</p>
+					</div>
+					<button
+						onClick={() => navigate('/login')}
+						style={{
+							padding: '0.75rem 2rem',
+							background: 'var(--primary)',
+							color: '#fff',
+							border: 'none',
+							borderRadius: '8px',
+							fontSize: '1rem',
+							fontWeight: 600,
+							cursor: 'pointer'
+						}}
+					>
+						Go to Sign In
+					</button>
 				</div>
 			) : (
 				<>

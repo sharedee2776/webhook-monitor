@@ -11,6 +11,7 @@ const UserProfileMenu: React.FC<{ userEmail?: string }> = ({ userEmail = 'user@w
 
   const handleLogout = async () => {
     setOpen(false);
+    sessionStorage.removeItem('userSession');
     await signOut(auth);
     navigate('/login');
   };
