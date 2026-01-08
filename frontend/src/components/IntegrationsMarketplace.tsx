@@ -10,13 +10,14 @@ interface Integration {
   description: string;
   connected: boolean;
   connectedAt?: string;
+  comingSoon?: boolean;
 }
 
 const INTEGRATIONS: Integration[] = [
-  { type: 'slack', name: 'Slack', description: 'Send webhook notifications to Slack channels.', connected: false },
-  { type: 'discord', name: 'Discord', description: 'Send webhook notifications to Discord servers.', connected: false },
-  { type: 'zapier', name: 'Zapier', description: 'Automate workflows with Zapier integrations.', connected: false },
-  { type: 'teams', name: 'Microsoft Teams', description: 'Send webhook notifications to Teams channels.', connected: false },
+  { type: 'discord', name: 'Discord', description: 'Send webhook notifications to Discord servers.', connected: false, comingSoon: false },
+  { type: 'slack', name: 'Slack', description: 'Send webhook notifications to Slack channels.', connected: false, comingSoon: true },
+  { type: 'zapier', name: 'Zapier', description: 'Automate workflows with Zapier integrations.', connected: false, comingSoon: true },
+  { type: 'teams', name: 'Microsoft Teams', description: 'Send webhook notifications to Teams channels.', connected: false, comingSoon: true },
 ];
 
 const IntegrationsMarketplace: React.FC = () => {
@@ -68,6 +69,12 @@ const IntegrationsMarketplace: React.FC = () => {
   };
 
   const handleConnect = async (integrationType: IntegrationType) => {
+    // Only allow Discord for now
+    if (integrationType !== 'discord') {
+      alert('This integration is coming soon!');
+      return;
+    }
+    
     setConnecting(integrationType);
     try {
       const apiKey = localStorage.getItem('apiKey') || '';
@@ -183,7 +190,25 @@ const IntegrationsMarketplace: React.FC = () => {
               </p>
             )}
             <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
-              {integration.connected ? (
+              {integration.comingSoon ? (
+                <button
+                  disabled
+                  style={{
+                    padding: '0.5rem 1.5rem',
+                    background: '#e5e7eb',
+                    color: '#6b7280',
+                    border: 'none',
+                    borderRadius: 4,
+                    cursor: 'not-allowed',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    flex: 1,
+                    opacity: 0.7
+                  }}
+                >
+                  Coming Soon
+                </button>
+              ) : integration.connected ? (
                 <button
                   onClick={() => handleDisconnect(integration.type)}
                   style={{

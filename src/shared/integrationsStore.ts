@@ -5,19 +5,18 @@ const integrationsTable = connectionString
   ? TableClient.fromConnectionString(connectionString, "Integrations")
   : null;
 
-export type IntegrationType = 'slack' | 'discord' | 'zapier' | 'teams';
+export type IntegrationType = 'discord';
 
 export interface IntegrationEntity {
   // Partition Key: tenantId
-  // Row Key: integrationType (e.g., 'slack', 'discord')
+  // Row Key: integrationType (e.g., 'discord')
   partitionKey: string; // tenantId
   rowKey: string; // integrationType
   integrationType: IntegrationType;
   accessToken?: string; // Encrypted OAuth access token
   refreshToken?: string; // Encrypted OAuth refresh token
-  webhookUrl?: string; // Webhook URL (for Discord, Zapier)
+  webhookUrl?: string; // Webhook URL (for Discord)
   channelId?: string; // Channel/workspace ID
-  teamId?: string; // Team/workspace ID (for Slack, Teams)
   connectedAt: string; // ISO timestamp
   settings?: string; // JSON stringified settings (notification preferences, etc.)
   active: boolean;
@@ -70,7 +69,6 @@ export async function getIntegration(
       refreshToken: entity.refreshToken as string | undefined,
       webhookUrl: entity.webhookUrl as string | undefined,
       channelId: entity.channelId as string | undefined,
-      teamId: entity.teamId as string | undefined,
       connectedAt: (entity.connectedAt as string) || new Date().toISOString(),
       settings: entity.settings as string | undefined,
       active: (entity.active as boolean) ?? true,
