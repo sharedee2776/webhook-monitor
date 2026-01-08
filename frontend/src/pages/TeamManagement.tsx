@@ -1,11 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { auth } from '../firebase';
+import { onAuthStateChanged, type User } from 'firebase/auth';
 
 const TeamManagement: React.FC = () => {
-  // Show only the real owner
-  const [team, setTeam] = useState([
-    { id: 1, name: 'ADEDAMOLA DAUDA', role: 'Owner' },
-  ]);
+  const [user, setUser] = useState<User | null>(null);
+  const [team, setTeam] = useState<Array<{ id: number; name: string; role: string }>>([]);
   const [inviteEmail, setInviteEmail] = useState('');
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        // Set the authenticated user as the owner
+        const displayName = firebaseUser.displayName || firebaseUser.email || 'User';
+        setTeam([{ id: 1, name: displayName, role: 'Owner' }]);
+      } else {
+        setUser(null);
+        setTeam([]);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleInvite = (e: React.FormEvent) => {
     e.preventDefault();

@@ -22,6 +22,8 @@ const WebhookIngestionUrl: React.FC = () => {
   const [jsonError, setJsonError] = useState<string>('');
   const [signatureLoading, setSignatureLoading] = useState<boolean>(false);
   const [signatureError, setSignatureError] = useState<string>('');
+  const [revealedTimestamp, setRevealedTimestamp] = useState<boolean>(false);
+  const [revealedSignature, setRevealedSignature] = useState<boolean>(false);
 
   const ingestionUrl = `${apiConfig.baseUrl}/api/ingest`;
 
@@ -39,6 +41,7 @@ const WebhookIngestionUrl: React.FC = () => {
   const generateTimestamp = () => {
     const ts = Date.now().toString();
     setTimestamp(ts);
+    setRevealedTimestamp(true);
     return ts;
   };
 
@@ -73,30 +76,15 @@ const WebhookIngestionUrl: React.FC = () => {
     }
   };
 
-  // Auto-generate timestamp on mount and when needed
+  // Reset revealed states when API key changes
   useEffect(() => {
-    if (apiKey) {
-      generateTimestamp();
-    }
-  }, [apiKey]);
-
-  // Auto-generate signature when body, timestamp, or apiKey changes
-  useEffect(() => {
-    if (testBody && timestamp && apiKey) {
-      // Validate JSON first
-      if (validateJSON(testBody)) {
-        setJsonError('');
-        generateSignature(testBody, timestamp, apiKey).then(sig => {
-          if (sig) setSignature(sig);
-        });
-      } else {
-        setJsonError('Invalid JSON format');
-        setSignature('');
-      }
-    } else {
+    if (!apiKey) {
+      setRevealedTimestamp(false);
+      setRevealedSignature(false);
+      setTimestamp('');
       setSignature('');
     }
-  }, [testBody, timestamp, apiKey]);
+  }, [apiKey]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -575,7 +563,7 @@ response = requests.post(
                   alignItems: 'center',
                   gap: '0.25rem'
                 }}
-                disabled={!timestamp}
+                disabled={!timestamp || !revealedTimestamp}
               >
                 {copied === 'header-time' ? <CheckCircle size={14} /> : <Copy size={14} />}
                 {copied === 'header-time' ? 'Copied!' : 'Copy'}
@@ -620,6 +608,7 @@ response = requests.post(
                     const sig = await generateSignature(testBody, timestamp, apiKey);
                     if (sig) {
                       setSignature(sig);
+                      setRevealedSignature(true);
                       copyToClipboard(sig, 'header-sig');
                     }
                   }
@@ -675,7 +664,7 @@ response = requests.post(
                   alignItems: 'center',
                   gap: '0.25rem'
                 }}
-                disabled={!signature}
+                disabled={!signature || !revealedSignature}
               >
                 {copied === 'header-sig' ? <CheckCircle size={14} /> : <Copy size={14} />}
                 {copied === 'header-sig' ? 'Copied!' : 'Copy'}
@@ -684,19 +673,22 @@ response = requests.post(
             <code style={{ 
               fontSize: '0.8rem',
               fontFamily: 'monospace',
-              color: signatureError ? '#dc2626' : '#222',
+              color: signatureError ? '#dc2626' : (revealedSignature ? '#222' : '#9ca3af'),
               wordBreak: 'break-all',
               display: 'block',
               padding: '0.5rem',
-              background: signatureError ? '#fef2f2' : '#f8f9fa',
+              background: signatureError ? '#fef2f2' : (revealedSignature ? '#f8f9fa' : '#f3f4f6'),
               borderRadius: '4px',
-              border: signatureError ? '1px solid #fecaca' : 'none'
+              border: signatureError ? '1px solid #fecaca' : 'none',
+              userSelect: revealedSignature ? 'text' : 'none'
             }}>
               {signatureError 
                 ? `Error: ${signatureError}` 
-                : signature 
+                : revealedSignature && signature
                   ? signature 
-                  : 'Click Generate to create signature (requires valid JSON body, timestamp, and API key)'
+                  : signature
+                    ? '••••••••••••••••••••••••••••••••••••••••••••••••••••'
+                    : 'Click Generate to create signature (requires valid JSON body, timestamp, and API key)'
               }
             </code>
             {signature && !signatureError && (

@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth, type Auth, type User } from "firebase/auth";
+import { getAuth, setPersistence, browserSessionPersistence, type Auth, type User } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -38,7 +38,16 @@ try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     
-    console.log('✅ Firebase initialized successfully');
+    // Set auth persistence to SESSION (only persists for current browser tab session)
+    // This ensures users are logged out when they close the browser/tab
+    setPersistence(auth, browserSessionPersistence)
+      .then(() => {
+        console.log('✅ Firebase initialized with SESSION persistence (auto-logout on browser close)');
+      })
+      .catch((error) => {
+        console.error('⚠️ Failed to set auth persistence:', error);
+        console.log('✅ Firebase initialized (fallback to default persistence)');
+      });
   } else {
     console.warn('⚠️ Firebase configuration missing - authentication will be disabled');
     auth = createMockAuth();
