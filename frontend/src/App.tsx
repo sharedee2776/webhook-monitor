@@ -38,6 +38,30 @@ function App() {
     }, []);
   const [user, setUser] = useState<User | null>(null);
   
+  // Clear session data on browser/tab close for security
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Clear sessionStorage when browser/tab is closed
+      sessionStorage.removeItem('userSession');
+      // Note: Firebase SESSION persistence will automatically clear auth state on browser close
+    };
+
+    const handleVisibilityChange = () => {
+      // If page becomes hidden (user switching tabs or closing), prepare for cleanup
+      if (document.hidden) {
+        // This is a fallback - SESSION persistence handles the main cleanup
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   // Check session on mount - if no sessionStorage, require login
   useEffect(() => {
     const sessionActive = sessionStorage.getItem('userSession');

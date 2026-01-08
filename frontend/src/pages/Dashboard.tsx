@@ -271,9 +271,6 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Webhook Ingestion URL - Prominent when user has API key */}
-      {user && hasApiKey && <WebhookIngestionUrl />}
-
       {/* Subscription Status */}
       <div className="card" style={{ textAlign: 'center', background: 'linear-gradient(90deg, #f8fafc 60%, #e0e7ff 100%)', border: '1px solid #e0e7ff', boxShadow: '0 2px 8px rgba(100,108,255,0.07)' }}>
         <h2 style={{ fontSize: '1.7rem', marginBottom: 8, color: 'var(--primary)' }}><LockKey size={28} style={{verticalAlign:'middle',marginRight:8}}/> Subscription Status</h2>
