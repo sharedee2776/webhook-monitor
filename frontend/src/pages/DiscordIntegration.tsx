@@ -8,12 +8,17 @@ const DiscordIntegration: React.FC = () => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaved(false);
+    const apiKey = localStorage.getItem('apiKey') || '';
+    if (!apiKey) {
+      alert('API key is required. Please generate an API key first.');
+      return;
+    }
     try {
       const res = await fetch(apiConfig.endpoints.discordIntegration, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Optionally add auth headers here
+          'x-api-key': apiKey,
         },
         body: JSON.stringify({ webhookUrl }),
       });
@@ -21,7 +26,12 @@ const DiscordIntegration: React.FC = () => {
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
       } else {
-        alert('Failed to save webhook URL');
+        const errorText = await res.text();
+        if (res.status === 401) {
+          alert('Authentication failed. Please check your API key.');
+        } else {
+          alert(`Failed to save webhook URL: ${errorText}`);
+        }
       }
     } catch (err) {
       alert('Error saving webhook URL');

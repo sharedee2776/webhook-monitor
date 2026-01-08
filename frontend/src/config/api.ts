@@ -14,7 +14,7 @@ export const apiConfig = {
     createCheckout: `${API_BASE_URL}/api/billing/create-checkout`,
     stripeWebhook: `${API_BASE_URL}/api/billing/stripe-webhook`,
     dashboardEvents: `${API_BASE_URL}/api/dashboardEvents`,
-    ingestWebhook: `${API_BASE_URL}/api/ingest`,
+    ingestWebhook: `${API_BASE_URL}/api/ingestWebhook`,
     alertWebhook: `${API_BASE_URL}/api/alert/webhook`,
     alertEmailConfig: `${API_BASE_URL}/api/alert/email-config`,
     tenantPlan: `${API_BASE_URL}/api/tenant/plan`,

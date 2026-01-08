@@ -25,7 +25,7 @@ const WebhookIngestionUrl: React.FC = () => {
   const [revealedTimestamp, setRevealedTimestamp] = useState<boolean>(false);
   const [revealedSignature, setRevealedSignature] = useState<boolean>(false);
 
-  const ingestionUrl = `${apiConfig.baseUrl}/api/ingest`;
+  const ingestionUrl = apiConfig.endpoints.ingestWebhook;
 
   // Validate JSON
   const validateJSON = (jsonString: string): boolean => {
