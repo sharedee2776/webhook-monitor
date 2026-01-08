@@ -14,6 +14,12 @@
       "allowedRoles": ["anonymous"]
     },
     {
+      "route": "/oauth/callback/*",
+      "rewrite": "/api/oauth/callback/*",
+      "methods": ["GET"],
+      "allowedRoles": ["anonymous"]
+    },
+    {
       "route": "/*",
       "serve": "/index.html",
       "statusCode": 200,
