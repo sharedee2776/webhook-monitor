@@ -339,7 +339,7 @@ const Home: React.FC = () => {
                 className="card pricing-card"
                 style={{
                   textAlign: 'center',
-                  padding: plan.highlight ? '4.5rem 2rem 2.5rem 2rem' : '2.5rem 2rem', // more top padding for badge
+                  padding: plan.highlight ? '3.5rem 2rem 2.5rem 2rem' : '2.5rem 2rem',
                   border: plan.highlight ? '3px solid var(--primary)' : '1px solid var(--border)',
                   position: 'relative',
                   boxShadow: plan.highlight 
@@ -353,25 +353,28 @@ const Home: React.FC = () => {
                   flexDirection: 'column',
                   height: '100%',
                   minHeight: 420,
-                  overflow: 'visible',
+                  width: '100%',
+                  maxWidth: '100%',
+                  boxSizing: 'border-box',
+                  margin: 0,
                 }}
               >
                 {/* Only show badge for Pro plan */}
                 {plan.name === 'Pro' && (
                   <div style={{
                     position: 'absolute',
-                    top: '-28px',
+                    top: '-20px',
                     left: '50%',
                     transform: 'translateX(-50%)',
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     color: '#fff',
                     padding: '0.5rem 1.5rem',
                     borderRadius: '1rem',
-                    fontSize: '1rem',
+                    fontSize: '0.9rem',
                     fontWeight: 700,
                     boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
-                    zIndex: 30,
-                    minWidth: '140px',
+                    zIndex: 10,
+                    whiteSpace: 'nowrap',
                     textAlign: 'center',
                     letterSpacing: '0.5px',
                   }}>

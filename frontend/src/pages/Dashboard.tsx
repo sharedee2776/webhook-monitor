@@ -8,6 +8,7 @@ import NotificationCenter from '../components/NotificationCenter';
 import WebhookEndpoints from '../components/WebhookEndpoints';
 import EventSearchFilter from '../components/EventSearchFilter';
 import DashboardStats from '../components/DashboardStats';
+import WebhookIngestionUrl from '../components/WebhookIngestionUrl';
 
 import EventList from './EventList';
 import UsageAnalytics from './UsageAnalytics';
@@ -270,6 +271,9 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
+      {/* Webhook Ingestion URL - Prominent when user has API key */}
+      {user && hasApiKey && <WebhookIngestionUrl />}
+
       {/* Subscription Status */}
       <div className="card" style={{ textAlign: 'center', background: 'linear-gradient(90deg, #f8fafc 60%, #e0e7ff 100%)', border: '1px solid #e0e7ff', boxShadow: '0 2px 8px rgba(100,108,255,0.07)' }}>
         <h2 style={{ fontSize: '1.7rem', marginBottom: 8, color: 'var(--primary)' }}><LockKey size={28} style={{verticalAlign:'middle',marginRight:8}}/> Subscription Status</h2>
@@ -307,6 +311,16 @@ const Dashboard: React.FC = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <h2 style={{ fontSize: '1.5rem', color: '#222', marginBottom: '0.5rem' }}>Core Features</h2>
         
+        {/* Webhook Ingestion URL - Permanent Section */}
+        {user && hasApiKey && (
+          <div>
+            <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem', fontSize: '1.2rem', color: '#222'}}>
+              <Rocket size={22}/> <span style={{fontWeight:600}}>Send Webhooks</span>
+            </h3>
+            <WebhookIngestionUrl />
+          </div>
+        )}
+
         {/* Monitoring & Events Section */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
           <div className="card" id="events">
@@ -333,8 +347,11 @@ const Dashboard: React.FC = () => {
           </div>
           <div className="card" id="endpoints">
             <h3 style={{display:'flex',alignItems:'center',gap:8, marginBottom: '1rem'}}>
-              <Plug size={22}/> <span style={{fontWeight:600}}>Webhook Endpoints</span>
+              <Plug size={22}/> <span style={{fontWeight:600}}>Webhook Endpoints (Outgoing)</span>
             </h3>
+            <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '1rem' }}>
+              Configure endpoints where your webhook events should be forwarded to.
+            </p>
             <WebhookEndpoints />
           </div>
         </div>
