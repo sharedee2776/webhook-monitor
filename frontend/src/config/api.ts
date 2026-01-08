@@ -23,6 +23,7 @@ export const apiConfig = {
     auditLogs: `${API_BASE_URL}/api/audit-logs`,
     webhookEndpoints: `${API_BASE_URL}/api/webhook/endpoints`,
     discordIntegration: `${API_BASE_URL}/api/discord/integration`,
+    integrations: `${API_BASE_URL}/api/integrations`,
   }
 };
 
