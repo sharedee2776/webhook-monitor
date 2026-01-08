@@ -51,12 +51,14 @@ app.http("integrationsOAuth", {
       };
     }
 
-    // Generate state token for CSRF protection
+    // Generate state token for CSRF protection (include tenantId for callback)
     const state = randomUUID();
+    // Include tenantId in state for callback verification
+    const stateWithTenant = `${state}:${keyInfo.tenantId}`;
     // Use the Discord callback URL configured in Discord app
     const callbackUrl = integrationType === 'discord' 
-      ? `${DISCORD_CALLBACK_URL}?state=${state}&tenantId=${keyInfo.tenantId}`
-      : `${REDIRECT_BASE_URL}/api/integrations/${integrationType}/callback?state=${state}&tenantId=${keyInfo.tenantId}`;
+      ? `${DISCORD_CALLBACK_URL}?state=${encodeURIComponent(stateWithTenant)}`
+      : `${REDIRECT_BASE_URL}/api/integrations/${integrationType}/callback?state=${encodeURIComponent(stateWithTenant)}`;
 
     // Build OAuth URL
     const params = new URLSearchParams({
@@ -89,8 +91,7 @@ app.http("integrationsOAuthCallback", {
   handler: async (req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
     const integrationType = (req.params as any)["integrationType"] as string | undefined;
     const code = req.query.get("code");
-    const state = req.query.get("state");
-    const tenantId = req.query.get("tenantId");
+    const stateParam = req.query.get("state");
     const error = req.query.get("error");
 
     if (error) {
@@ -100,10 +101,19 @@ app.http("integrationsOAuthCallback", {
       };
     }
 
-    if (!code || !tenantId || !integrationType || integrationType !== 'discord') {
+    if (!code || !stateParam || !integrationType || integrationType !== 'discord') {
       return {
         status: 400,
-        body: "Missing code, tenantId, or invalid integration type",
+        body: "Missing code, state, or invalid integration type",
+      };
+    }
+
+    // Extract tenantId from state (format: "state:tenantId")
+    const [state, tenantId] = stateParam.split(':');
+    if (!tenantId) {
+      return {
+        status: 400,
+        body: "Invalid state parameter",
       };
     }
 
