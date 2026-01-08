@@ -70,26 +70,29 @@ const WebhookIngestionUrl: React.FC = () => {
     setTimeout(() => setCopied(''), 2000);
   };
 
-  const curlExample = `curl -X POST ${ingestionUrl} \\
+  const curlExample = `# Calculate signature first: SHA256(body + timestamp + apiKey)
+BODY='{"eventType":"test_event","payload":{"message":"Hello from Webhook Monitor!"}}'
+TIMESTAMP=$(date +%s)000  # milliseconds
+MESSAGE="$BODY$TIMESTAMP${apiKey || 'YOUR_API_KEY'}"
+SIGNATURE=$(echo -n "$MESSAGE" | sha256sum | cut -d' ' -f1)
+
+curl -X POST ${ingestionUrl} \\
   -H "Content-Type: application/json" \\
   -H "x-api-key: ${apiKey || 'YOUR_API_KEY'}" \\
-  -H "x-signature: YOUR_SIGNATURE" \\
-  -H "x-timestamp: $(date +%s)" \\
-  -d '{
-    "eventType": "test_event",
-    "payload": {
-      "message": "Hello from Webhook Monitor!"
-    }
-  }'`;
+  -H "x-signature: $SIGNATURE" \\
+  -H "x-timestamp: $TIMESTAMP" \\
+  -d "$BODY"`;
 
-  const javascriptExample = `const timestamp = Date.now().toString();
+  const javascriptExample = `// Calculate signature: SHA256(body + timestamp + apiKey)
+const timestamp = Date.now().toString();
 const body = JSON.stringify({
   eventType: 'test_event',
   payload: { message: 'Hello from Webhook Monitor!' }
 });
+const message = body + timestamp + '${apiKey || 'YOUR_API_KEY'}';
 const signature = await crypto.subtle.digest(
   'SHA-256',
-  new TextEncoder().encode(body + timestamp + '${apiKey || 'YOUR_API_KEY'}')
+  new TextEncoder().encode(message)
 ).then(hash => Array.from(new Uint8Array(hash))
   .map(b => b.toString(16).padStart(2, '0')).join(''));
 
@@ -105,23 +108,21 @@ fetch('${ingestionUrl}', {
 });`;
 
   const pythonExample = `import requests
-import hmac
 import hashlib
+import json
 import time
 
+# Calculate signature: SHA256(body + timestamp + apiKey)
 api_key = '${apiKey || 'YOUR_API_KEY'}'
 url = '${ingestionUrl}'
-timestamp = str(int(time.time()))
+timestamp = str(int(time.time() * 1000))  # milliseconds
 body = {
     "eventType": "test_event",
     "payload": {"message": "Hello from Webhook Monitor!"}
 }
 body_str = json.dumps(body)
-signature = hmac.new(
-    api_key.encode(),
-    (body_str + timestamp + api_key).encode(),
-    hashlib.sha256
-).hexdigest()
+message = body_str + timestamp + api_key
+signature = hashlib.sha256(message.encode()).hexdigest()
 
 response = requests.post(
     url,
@@ -306,6 +307,161 @@ response = requests.post(
             {copied === 'key' ? <CheckCircle size={18} /> : <Copy size={18} />}
             {copied === 'key' ? 'Copied!' : 'Copy'}
           </button>
+        </div>
+      </div>
+
+      {/* Required Headers */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <label style={{ 
+          display: 'block', 
+          marginBottom: '0.75rem', 
+          fontSize: '0.9rem', 
+          fontWeight: 600, 
+          color: '#374151' 
+        }}>
+          Required Headers
+        </label>
+        <div style={{ 
+          background: '#fff',
+          border: '1px solid #e5e7eb',
+          borderRadius: '8px',
+          overflow: 'hidden'
+        }}>
+          <div style={{ 
+            padding: '0.75rem 1rem',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
+          }}>
+            <code style={{ 
+              minWidth: '120px',
+              fontSize: '0.85rem',
+              fontFamily: 'monospace',
+              color: '#667eea',
+              fontWeight: 600
+            }}>x-api-key</code>
+            <span style={{ fontSize: '0.85rem', color: '#666', flex: 1 }}>Your API key (required)</span>
+            <button
+              onClick={() => copyToClipboard('x-api-key', 'header-key')}
+              style={{
+                padding: '0.25rem 0.5rem',
+                background: 'transparent',
+                border: '1px solid #e5e7eb',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '0.75rem'
+              }}
+            >
+              {copied === 'header-key' ? <CheckCircle size={12} /> : <Copy size={12} />}
+            </button>
+          </div>
+          <div style={{ 
+            padding: '0.75rem 1rem',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
+          }}>
+            <code style={{ 
+              minWidth: '120px',
+              fontSize: '0.85rem',
+              fontFamily: 'monospace',
+              color: '#667eea',
+              fontWeight: 600
+            }}>x-signature</code>
+            <span style={{ fontSize: '0.85rem', color: '#666', flex: 1 }}>SHA-256 hash signature (required)</span>
+            <button
+              onClick={() => copyToClipboard('x-signature', 'header-sig')}
+              style={{
+                padding: '0.25rem 0.5rem',
+                background: 'transparent',
+                border: '1px solid #e5e7eb',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '0.75rem'
+              }}
+            >
+              {copied === 'header-sig' ? <CheckCircle size={12} /> : <Copy size={12} />}
+            </button>
+          </div>
+          <div style={{ 
+            padding: '0.75rem 1rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
+          }}>
+            <code style={{ 
+              minWidth: '120px',
+              fontSize: '0.85rem',
+              fontFamily: 'monospace',
+              color: '#667eea',
+              fontWeight: 600
+            }}>x-timestamp</code>
+            <span style={{ fontSize: '0.85rem', color: '#666', flex: 1 }}>Current timestamp in milliseconds (required)</span>
+            <button
+              onClick={() => copyToClipboard('x-timestamp', 'header-time')}
+              style={{
+                padding: '0.25rem 0.5rem',
+                background: 'transparent',
+                border: '1px solid #e5e7eb',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '0.75rem'
+              }}
+            >
+              {copied === 'header-time' ? <CheckCircle size={12} /> : <Copy size={12} />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Signature Algorithm */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <label style={{ 
+          display: 'block', 
+          marginBottom: '0.75rem', 
+          fontSize: '0.9rem', 
+          fontWeight: 600, 
+          color: '#374151' 
+        }}>
+          Signature Algorithm
+        </label>
+        <div style={{ 
+          background: '#f8f9fa',
+          border: '1px solid #e5e7eb',
+          borderRadius: '8px',
+          padding: '1rem'
+        }}>
+          <div style={{ marginBottom: '0.75rem' }}>
+            <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>Algorithm</div>
+            <code style={{ 
+              fontSize: '0.9rem',
+              fontFamily: 'monospace',
+              color: '#222',
+              fontWeight: 600
+            }}>SHA-256</code>
+          </div>
+          <div style={{ marginBottom: '0.75rem' }}>
+            <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>Formula</div>
+            <code style={{ 
+              fontSize: '0.85rem',
+              fontFamily: 'monospace',
+              color: '#222',
+              background: '#fff',
+              padding: '0.5rem',
+              borderRadius: '4px',
+              display: 'block'
+            }}>SHA256(body + timestamp + apiKey)</code>
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#666', lineHeight: 1.6 }}>
+            <strong>Steps:</strong>
+            <ol style={{ margin: '0.5rem 0 0 1.5rem', padding: 0 }}>
+              <li>Concatenate: JSON body string + timestamp (ms) + API key</li>
+              <li>Compute SHA-256 hash of the concatenated string</li>
+              <li>Send hash as hexadecimal string in <code style={{ background: '#fff', padding: '0.1rem 0.3rem', borderRadius: '3px' }}>x-signature</code> header</li>
+            </ol>
+          </div>
         </div>
       </div>
 
@@ -494,9 +650,8 @@ response = requests.post(
         fontSize: '0.85rem',
         color: '#92400e'
       }}>
-        <strong>⚠️ Important:</strong> All POST requests to the ingestion endpoint require request signing with HMAC-SHA256. 
-        Include <code style={{ background: '#fff', padding: '0.1rem 0.3rem', borderRadius: '3px' }}>x-signature</code> and <code style={{ background: '#fff', padding: '0.1rem 0.3rem', borderRadius: '3px' }}>x-timestamp</code> headers. 
-        See the <a href="/docs" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>documentation</a> for details.
+        <strong>⚠️ Important:</strong> All POST requests require <code style={{ background: '#fff', padding: '0.1rem 0.3rem', borderRadius: '3px' }}>x-api-key</code>, <code style={{ background: '#fff', padding: '0.1rem 0.3rem', borderRadius: '3px' }}>x-signature</code>, and <code style={{ background: '#fff', padding: '0.1rem 0.3rem', borderRadius: '3px' }}>x-timestamp</code> headers. 
+        Signature must be SHA-256 hash of (body + timestamp + apiKey). Timestamp must be within 5 minutes of current time.
       </div>
     </div>
   );
