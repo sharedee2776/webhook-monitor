@@ -424,11 +424,13 @@ const Home: React.FC = () => {
                     borderRadius: '8px',
                     textDecoration: 'none',
                     fontWeight: 600,
-                    display: 'inline-block',
+                    display: 'block',
+                    textAlign: 'center',
                     transition: 'all 0.2s ease',
                     boxShadow: plan.highlight 
                       ? '0 4px 12px rgba(102, 126, 234, 0.3)' 
-                      : 'none'
+                      : 'none',
+                    boxSizing: 'border-box'
                   }}
                   onMouseEnter={(e) => {
                     if (plan.highlight) {
