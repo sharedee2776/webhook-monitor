@@ -36,7 +36,7 @@ export async function dashboardEvents(
   const cutoff = Date.now() - retentionMs;
 
   const tenantId = keyInfo.tenantId;
-  const events = getEventsForTenant(tenantId);
+  const events = await getEventsForTenant(tenantId);
 
   // Filter events by retention
   const filteredEvents = events.filter((e: any) => {
