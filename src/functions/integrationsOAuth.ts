@@ -14,6 +14,8 @@ const OAUTH_CONFIG = {
   },
 };
 
+// Discord OAuth callback URL - should match what's configured in Discord app
+const DISCORD_CALLBACK_URL = process.env.DISCORD_CALLBACK_URL || "https://www.webhookmonitor.shop/oauth/callback/discord";
 const REDIRECT_BASE_URL = process.env.OAUTH_REDIRECT_BASE_URL || process.env.VITE_API_BASE_URL || "https://webhook-monitor-func.azurewebsites.net";
 
 /**
@@ -51,7 +53,10 @@ app.http("integrationsOAuth", {
 
     // Generate state token for CSRF protection
     const state = randomUUID();
-    const callbackUrl = `${REDIRECT_BASE_URL}/api/integrations/${integrationType}/callback?state=${state}&tenantId=${keyInfo.tenantId}`;
+    // Use the Discord callback URL configured in Discord app
+    const callbackUrl = integrationType === 'discord' 
+      ? `${DISCORD_CALLBACK_URL}?state=${state}&tenantId=${keyInfo.tenantId}`
+      : `${REDIRECT_BASE_URL}/api/integrations/${integrationType}/callback?state=${state}&tenantId=${keyInfo.tenantId}`;
 
     // Build OAuth URL
     const params = new URLSearchParams({
@@ -76,8 +81,9 @@ app.http("integrationsOAuth", {
 /**
  * Handle OAuth callback
  */
+// Discord OAuth callback handler - matches Discord app redirect URL
 app.http("integrationsOAuthCallback", {
-  route: "integrations/{integrationType}/callback",
+  route: "oauth/callback/{integrationType}",
   methods: ["GET"],
   authLevel: "anonymous",
   handler: async (req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
@@ -110,8 +116,10 @@ app.http("integrationsOAuthCallback", {
     }
 
     try {
-      // Exchange code for access token
-      const callbackUrl = `${REDIRECT_BASE_URL}/api/integrations/${integrationType}/callback`;
+      // Exchange code for access token - use the same callback URL as in OAuth initiation
+      const callbackUrl = integrationType === 'discord'
+        ? DISCORD_CALLBACK_URL
+        : `${REDIRECT_BASE_URL}/api/integrations/${integrationType}/callback`;
       const tokenResponse = await fetch(config.tokenUrl, {
         method: "POST",
         headers: {
