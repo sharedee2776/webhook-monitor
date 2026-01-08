@@ -14,31 +14,69 @@ const WebhookEndpoints: React.FC = () => {
   const apiKey = localStorage.getItem('apiKey') || '';
 
   useEffect(() => {
-    if (!apiKey) return setLoading(false);
+    if (!apiKey) {
+      setLoading(false);
+      return;
+    }
     fetch(apiConfig.endpoints.webhookEndpoints, {
       headers: { 'x-api-key': apiKey }
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          if (res.status === 401) {
+            setError('Authentication failed. Please check your API key.');
+          }
+          return { endpoints: [] };
+        }
+        return res.json();
+      })
       .then(data => setEndpoints(data.endpoints || []))
-      .catch(() => setEndpoints([]))
+      .catch((err) => {
+        console.error('Failed to fetch endpoints:', err);
+        setEndpoints([]);
+      })
       .finally(() => setLoading(false));
   }, [apiKey]);
 
   const addEndpoint = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!name || !url) return;
+    if (!name || !url) {
+      setError('Please provide both name and URL');
+      return;
+    }
+    if (!apiKey) {
+      setError('API key is required. Please generate an API key first.');
+      return;
+    }
     try {
       const res = await fetch(apiConfig.endpoints.webhookEndpoints, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'x-api-key': apiKey 
+        },
         body: JSON.stringify({ name, url, active: true })
       });
-      if (!res.ok) throw new Error('Failed to add endpoint');
+      if (!res.ok) {
+        const errorText = await res.text();
+        if (res.status === 401) {
+          throw new Error('Authentication failed. Please check your API key.');
+        } else if (res.status === 400) {
+          try {
+            const errorData = JSON.parse(errorText);
+            throw new Error(errorData.error || 'Invalid request. Please check your input.');
+          } catch {
+            throw new Error(errorText || `Failed to add endpoint (${res.status})`);
+          }
+        }
+        throw new Error(errorText || `Failed to add endpoint (${res.status})`);
+      }
       const data = await res.json();
       setEndpoints((prev) => [...prev, data.endpoint]);
       setName('');
       setUrl('');
+      setError(''); // Clear any previous errors
     } catch (err: any) {
       setError(err.message || 'Error adding endpoint');
     }
@@ -51,13 +89,26 @@ const WebhookEndpoints: React.FC = () => {
 
   const removeEndpoint = async (id: number) => {
     setError('');
+    if (!apiKey) {
+      setError('API key is required');
+      return;
+    }
     try {
       const res = await fetch(apiConfig.endpoints.webhookEndpoints, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'x-api-key': apiKey 
+        },
         body: JSON.stringify({ id })
       });
-      if (!res.ok) throw new Error('Failed to remove endpoint');
+      if (!res.ok) {
+        const errorText = await res.text();
+        if (res.status === 401) {
+          throw new Error('Authentication failed. Please check your API key.');
+        }
+        throw new Error(errorText || `Failed to remove endpoint (${res.status})`);
+      }
       const data = await res.json();
       setEndpoints(data.endpoints || []);
     } catch (err: any) {

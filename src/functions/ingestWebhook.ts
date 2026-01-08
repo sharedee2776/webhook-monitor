@@ -36,7 +36,7 @@ export async function ingestWebhook(
         eventType: "auth_failure",
         ipAddress: getClientIp(request),
         userAgent: request.headers.get("user-agent") || undefined,
-        endpoint: "/api/ingest",
+        endpoint: "/api/ingestWebhook",
         method: "POST",
         errorMessage: "Missing API key",
       });
@@ -51,7 +51,7 @@ export async function ingestWebhook(
     (context as any).tenantId = keyInfo.tenantId;
 
     // --- Signature Verification (REQUIRED for write operations) ---
-    const signatureResult = await verifyRequestSignature(request, apiKey, rawBody, "/api/ingest");
+    const signatureResult = await verifyRequestSignature(request, apiKey, rawBody, "/api/ingestWebhook");
     if (!signatureResult.valid) {
       return { status: 401, body: signatureResult.error || "Invalid request signature" };
     }
@@ -183,7 +183,7 @@ export async function ingestWebhook(
         apiKey,
         ipAddress: getClientIp(request),
         userAgent: request.headers.get("user-agent") || undefined,
-        endpoint: "/api/ingest",
+        endpoint: "/api/ingestWebhook",
         method: "POST",
         statusCode: 429,
         metadata: {

@@ -28,7 +28,7 @@ const Docs: React.FC = () => {
       content: [
         {
           heading: 'API Endpoint',
-          text: 'Your webhook endpoint: https://webhook-monitor-func.azurewebsites.net/api/ingest'
+          text: 'Your webhook endpoint: https://webhook-monitor-func.azurewebsites.net/api/ingestWebhook'
         },
         {
           heading: 'Authentication',
