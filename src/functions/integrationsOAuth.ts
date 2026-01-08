@@ -26,7 +26,11 @@ app.http("integrationsOAuth", {
   methods: ["GET"],
   authLevel: "anonymous",
   handler: async (req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
-    const apiKey = req.headers.get("x-api-key") ?? req.headers.get("X-API-Key");
+    // Accept API key from headers or query parameters (query params needed for popup windows)
+    const apiKey = req.headers.get("x-api-key") 
+      ?? req.headers.get("X-API-Key")
+      ?? req.query.get("x-api-key")
+      ?? req.query.get("X-API-Key");
     if (!apiKey) {
       return { status: 401, body: "Invalid or missing API key" };
     }
