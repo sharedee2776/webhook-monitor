@@ -1,4 +1,5 @@
 import { updateEventStatus } from "./eventTableStore";
+import { notifyIntegrations } from "./integrationNotifier";
 import { TableClient } from "@azure/data-tables";
 
 const connectionString = process.env.AzureWebJobsStorage || process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -45,7 +46,7 @@ async function getTenantEndpoints(tenantId: string): Promise<WebhookEndpoint[]> 
 
     for await (const entity of query) {
       endpoints.push({
-        id: entity.rowKey,
+        id: (entity.rowKey as string) || '',
         name: entity.name as string,
         url: entity.url as string,
         active: entity.active as boolean,
@@ -181,7 +182,7 @@ export async function forwardEventToEndpoints(
     retry_count: 1, // We'll track retries per endpoint in the future
   });
 
-  // Also notify connected integrations (Slack, Discord, etc.)
+  // Also notify connected integrations (Discord, etc.)
   notifyIntegrations(tenantId, {
     eventType: event.eventType,
     payload: event.payload,

@@ -3,6 +3,7 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/fu
 import { authenticateApiKey } from "../lib/auth";
 import { createHash, randomUUID } from "crypto";
 import { saveEvent } from "../shared/eventStore";
+import { forwardEventToEndpoints } from "../shared/eventForwarder";
 import { trackUsage, getUsage } from "../shared/usageTracker";
 import { assertWithinLimit } from "../shared/enforceLimit";
 import { PLANS } from "../plans/plans";

@@ -78,10 +78,12 @@ export async function updateEventStatus(
   try {
     const entity = await eventsTable.getEntity(tenantId, eventId);
     
-    const updatedEntity: Partial<EventEntity> = {
+    const updatedEntity: any = {
+      partitionKey: entity.partitionKey as string,
+      rowKey: entity.rowKey as string,
       ...entity,
       ...updates,
-      forwarded_to: updates.forwarded_to ? JSON.stringify(updates.forwarded_to) : entity.forwarded_to,
+      forwarded_to: updates.forwarded_to ? JSON.stringify(updates.forwarded_to) : (entity.forwarded_to as string | undefined),
     };
 
     await eventsTable.updateEntity(updatedEntity, "Replace");
