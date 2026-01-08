@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Copy, CheckCircle, Code, Rocket, Key } from '@phosphor-icons/react';
+import { Copy, CheckCircle, Code, Rocket, Key, ArrowClockwise } from '@phosphor-icons/react';
 import apiConfig from '../config/api';
 import { auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -16,8 +16,87 @@ const WebhookIngestionUrl: React.FC = () => {
   const [copied, setCopied] = useState<string>('');
   const [planInfo, setPlanInfo] = useState<PlanInfo | null>(null);
   const [tenantId, setTenantId] = useState<string>('');
+  const [timestamp, setTimestamp] = useState<string>('');
+  const [signature, setSignature] = useState<string>('');
+  const [testBody, setTestBody] = useState<string>('{"eventType":"test_event","payload":{"message":"Hello from Webhook Monitor!"}}');
+  const [jsonError, setJsonError] = useState<string>('');
+  const [signatureLoading, setSignatureLoading] = useState<boolean>(false);
+  const [signatureError, setSignatureError] = useState<string>('');
 
   const ingestionUrl = `${apiConfig.baseUrl}/api/ingest`;
+
+  // Validate JSON
+  const validateJSON = (jsonString: string): boolean => {
+    try {
+      JSON.parse(jsonString);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  // Generate timestamp (current time in milliseconds)
+  const generateTimestamp = () => {
+    const ts = Date.now().toString();
+    setTimestamp(ts);
+    return ts;
+  };
+
+  // Generate signature: SHA256(body + timestamp + apiKey)
+  const generateSignature = async (body: string, ts: string, key: string): Promise<string> => {
+    if (!body || !ts || !key) {
+      setSignatureError('Missing required values (body, timestamp, or API key)');
+      return '';
+    }
+    
+    // Validate JSON
+    if (!validateJSON(body)) {
+      setSignatureError('Invalid JSON in test body');
+      return '';
+    }
+
+    try {
+      setSignatureError('');
+      setSignatureLoading(true);
+      const message = body + ts + key;
+      const encoder = new TextEncoder();
+      const data = encoder.encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashHex;
+    } catch (error: any) {
+      setSignatureError(error.message || 'Failed to generate signature');
+      return '';
+    } finally {
+      setSignatureLoading(false);
+    }
+  };
+
+  // Auto-generate timestamp on mount and when needed
+  useEffect(() => {
+    if (apiKey) {
+      generateTimestamp();
+    }
+  }, [apiKey]);
+
+  // Auto-generate signature when body, timestamp, or apiKey changes
+  useEffect(() => {
+    if (testBody && timestamp && apiKey) {
+      // Validate JSON first
+      if (validateJSON(testBody)) {
+        setJsonError('');
+        generateSignature(testBody, timestamp, apiKey).then(sig => {
+          if (sig) setSignature(sig);
+        });
+      } else {
+        setJsonError('Invalid JSON format');
+        setSignature('');
+      }
+    } else {
+      setSignature('');
+    }
+  }, [testBody, timestamp, apiKey]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -310,6 +389,67 @@ response = requests.post(
         </div>
       </div>
 
+      {/* Test Body Input */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <label style={{ 
+          display: 'block', 
+          marginBottom: '0.5rem', 
+          fontSize: '0.9rem', 
+          fontWeight: 600, 
+          color: '#374151' 
+        }}>
+          Test Body (JSON) - Used for signature generation
+        </label>
+        <textarea
+          value={testBody}
+          onChange={(e) => {
+            const value = e.target.value;
+            setTestBody(value);
+            // Validate JSON on change
+            if (value.trim()) {
+              if (validateJSON(value)) {
+                setJsonError('');
+              } else {
+                setJsonError('Invalid JSON format. Please check your syntax.');
+              }
+            } else {
+              setJsonError('');
+            }
+          }}
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            border: jsonError ? '1px solid #ef4444' : '1px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.85rem',
+            fontFamily: 'monospace',
+            minHeight: '100px',
+            resize: 'vertical',
+            boxSizing: 'border-box',
+            background: jsonError ? '#fef2f2' : '#fff'
+          }}
+          placeholder='{"eventType":"test_event","payload":{"message":"Hello!"}}'
+        />
+        {jsonError && (
+          <div style={{ 
+            marginTop: '0.5rem', 
+            padding: '0.5rem', 
+            background: '#fef2f2', 
+            border: '1px solid #fecaca',
+            borderRadius: '6px',
+            fontSize: '0.8rem',
+            color: '#dc2626'
+          }}>
+            ⚠️ {jsonError}
+          </div>
+        )}
+        {!jsonError && testBody && (
+          <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+            ✓ Valid JSON. Modify this to generate signatures for your actual webhook payloads
+          </p>
+        )}
+      </div>
+
       {/* Required Headers */}
       <div style={{ marginBottom: '1.5rem' }}>
         <label style={{ 
@@ -319,7 +459,7 @@ response = requests.post(
           fontWeight: 600, 
           color: '#374151' 
         }}>
-          Required Headers
+          Required Headers (Generated Values)
         </label>
         <div style={{ 
           background: '#fff',
@@ -327,91 +467,248 @@ response = requests.post(
           borderRadius: '8px',
           overflow: 'hidden'
         }}>
+          {/* x-api-key */}
           <div style={{ 
             padding: '0.75rem 1rem',
             borderBottom: '1px solid #e5e7eb',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem'
           }}>
+            <div style={{ 
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              marginBottom: '0.5rem'
+            }}>
+              <code style={{ 
+                minWidth: '120px',
+                fontSize: '0.85rem',
+                fontFamily: 'monospace',
+                color: '#667eea',
+                fontWeight: 600
+              }}>x-api-key</code>
+              <span style={{ fontSize: '0.85rem', color: '#666', flex: 1 }}>Your API key (required)</span>
+              <button
+                onClick={() => copyToClipboard(apiKey, 'header-key')}
+                style={{
+                  padding: '0.4rem 0.75rem',
+                  background: copied === 'header-key' ? '#10b981' : 'var(--primary)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem'
+                }}
+              >
+                {copied === 'header-key' ? <CheckCircle size={14} /> : <Copy size={14} />}
+                {copied === 'header-key' ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
             <code style={{ 
-              minWidth: '120px',
-              fontSize: '0.85rem',
+              fontSize: '0.8rem',
               fontFamily: 'monospace',
-              color: '#667eea',
-              fontWeight: 600
-            }}>x-api-key</code>
-            <span style={{ fontSize: '0.85rem', color: '#666', flex: 1 }}>Your API key (required)</span>
-            <button
-              onClick={() => copyToClipboard('x-api-key', 'header-key')}
-              style={{
-                padding: '0.25rem 0.5rem',
-                background: 'transparent',
-                border: '1px solid #e5e7eb',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '0.75rem'
-              }}
-            >
-              {copied === 'header-key' ? <CheckCircle size={12} /> : <Copy size={12} />}
-            </button>
+              color: '#222',
+              wordBreak: 'break-all',
+              display: 'block',
+              padding: '0.5rem',
+              background: '#f8f9fa',
+              borderRadius: '4px'
+            }}>{apiKey || 'No API key found'}</code>
           </div>
+
+          {/* x-timestamp */}
           <div style={{ 
             padding: '0.75rem 1rem',
             borderBottom: '1px solid #e5e7eb',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem'
           }}>
+            <div style={{ 
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              marginBottom: '0.5rem'
+            }}>
+              <code style={{ 
+                minWidth: '120px',
+                fontSize: '0.85rem',
+                fontFamily: 'monospace',
+                color: '#667eea',
+                fontWeight: 600
+              }}>x-timestamp</code>
+              <span style={{ fontSize: '0.85rem', color: '#666', flex: 1 }}>Current timestamp in milliseconds (required)</span>
+              <button
+                onClick={() => {
+                  const ts = generateTimestamp();
+                  copyToClipboard(ts, 'header-time');
+                }}
+                style={{
+                  padding: '0.4rem 0.75rem',
+                  background: 'var(--primary)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  marginRight: '0.5rem'
+                }}
+              >
+                <ArrowClockwise size={14} />
+                Generate
+              </button>
+              <button
+                onClick={() => copyToClipboard(timestamp, 'header-time')}
+                style={{
+                  padding: '0.4rem 0.75rem',
+                  background: copied === 'header-time' ? '#10b981' : 'var(--primary)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem'
+                }}
+                disabled={!timestamp}
+              >
+                {copied === 'header-time' ? <CheckCircle size={14} /> : <Copy size={14} />}
+                {copied === 'header-time' ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
             <code style={{ 
-              minWidth: '120px',
-              fontSize: '0.85rem',
+              fontSize: '0.8rem',
               fontFamily: 'monospace',
-              color: '#667eea',
-              fontWeight: 600
-            }}>x-signature</code>
-            <span style={{ fontSize: '0.85rem', color: '#666', flex: 1 }}>SHA-256 hash signature (required)</span>
-            <button
-              onClick={() => copyToClipboard('x-signature', 'header-sig')}
-              style={{
-                padding: '0.25rem 0.5rem',
-                background: 'transparent',
-                border: '1px solid #e5e7eb',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '0.75rem'
-              }}
-            >
-              {copied === 'header-sig' ? <CheckCircle size={12} /> : <Copy size={12} />}
-            </button>
+              color: '#222',
+              display: 'block',
+              padding: '0.5rem',
+              background: '#f8f9fa',
+              borderRadius: '4px'
+            }}>{timestamp || 'Click Generate to create timestamp'}</code>
           </div>
+
+          {/* x-signature */}
           <div style={{ 
             padding: '0.75rem 1rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem'
           }}>
+            <div style={{ 
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              marginBottom: '0.5rem'
+            }}>
+              <code style={{ 
+                minWidth: '120px',
+                fontSize: '0.85rem',
+                fontFamily: 'monospace',
+                color: '#667eea',
+                fontWeight: 600
+              }}>x-signature</code>
+              <span style={{ fontSize: '0.85rem', color: '#666', flex: 1 }}>SHA-256 hash signature (required)</span>
+              <button
+                onClick={async () => {
+                  if (testBody && timestamp && apiKey) {
+                    if (!validateJSON(testBody)) {
+                      setJsonError('Invalid JSON format. Please fix the test body first.');
+                      return;
+                    }
+                    const sig = await generateSignature(testBody, timestamp, apiKey);
+                    if (sig) {
+                      setSignature(sig);
+                      copyToClipboard(sig, 'header-sig');
+                    }
+                  }
+                }}
+                style={{
+                  padding: '0.4rem 0.75rem',
+                  background: signatureLoading ? '#9ca3af' : 'var(--primary)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: (signatureLoading || !testBody || !timestamp || !apiKey) ? 'not-allowed' : 'pointer',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  marginRight: '0.5rem',
+                  opacity: (signatureLoading || !testBody || !timestamp || !apiKey) ? 0.6 : 1
+                }}
+                disabled={signatureLoading || !testBody || !timestamp || !apiKey || !!jsonError}
+              >
+                {signatureLoading ? (
+                  <>
+                    <div style={{ 
+                      width: '12px', 
+                      height: '12px', 
+                      border: '2px solid rgba(255,255,255,0.3)', 
+                      borderTopColor: '#fff', 
+                      borderRadius: '50%', 
+                      animation: 'spin 0.8s linear infinite' 
+                    }}></div>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <ArrowClockwise size={14} />
+                    Generate
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => copyToClipboard(signature, 'header-sig')}
+                style={{
+                  padding: '0.4rem 0.75rem',
+                  background: copied === 'header-sig' ? '#10b981' : 'var(--primary)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem'
+                }}
+                disabled={!signature}
+              >
+                {copied === 'header-sig' ? <CheckCircle size={14} /> : <Copy size={14} />}
+                {copied === 'header-sig' ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
             <code style={{ 
-              minWidth: '120px',
-              fontSize: '0.85rem',
+              fontSize: '0.8rem',
               fontFamily: 'monospace',
-              color: '#667eea',
-              fontWeight: 600
-            }}>x-timestamp</code>
-            <span style={{ fontSize: '0.85rem', color: '#666', flex: 1 }}>Current timestamp in milliseconds (required)</span>
-            <button
-              onClick={() => copyToClipboard('x-timestamp', 'header-time')}
-              style={{
-                padding: '0.25rem 0.5rem',
-                background: 'transparent',
-                border: '1px solid #e5e7eb',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '0.75rem'
-              }}
-            >
-              {copied === 'header-time' ? <CheckCircle size={12} /> : <Copy size={12} />}
-            </button>
+              color: signatureError ? '#dc2626' : '#222',
+              wordBreak: 'break-all',
+              display: 'block',
+              padding: '0.5rem',
+              background: signatureError ? '#fef2f2' : '#f8f9fa',
+              borderRadius: '4px',
+              border: signatureError ? '1px solid #fecaca' : 'none'
+            }}>
+              {signatureError 
+                ? `Error: ${signatureError}` 
+                : signature 
+                  ? signature 
+                  : 'Click Generate to create signature (requires valid JSON body, timestamp, and API key)'
+              }
+            </code>
+            {signature && !signatureError && (
+              <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                ✓ Generated from: SHA256(testBody + timestamp + apiKey)
+              </p>
+            )}
+            {signatureError && (
+              <p style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                ⚠️ {signatureError}
+              </p>
+            )}
           </div>
         </div>
       </div>
