@@ -25,6 +25,7 @@ import './functions/discordWebhook';
 import './functions/auditLogs';
 import './functions/initializeTenant';
 import './functions/listApiKeys';
+import './functions/integrationsOAuth';
 
 // Import timer trigger functions
 import './functions/uptimeCheck';

@@ -112,9 +112,23 @@ export async function ingestWebhook(
       payload: body.payload
     };
 
+    // Collect headers for storage (excluding sensitive ones)
+    const headersToStore: Record<string, string> = {};
+    request.headers.forEach((value, key) => {
+      const lowerKey = key.toLowerCase();
+      if (!['x-api-key', 'authorization', 'cookie'].includes(lowerKey)) {
+        headersToStore[key] = value;
+      }
+    });
+
     // --- Persist event (async) ---
-    await saveEvent(event);
+    await saveEvent(event, apiKey, headersToStore);
     trackUsage(tenantId);
+
+    // --- Forward event to user's webhook endpoints (async, don't block response) ---
+    forwardEventToEndpoints(tenantId, eventId, event).catch((err: any) => {
+      context.log(`Failed to forward event ${eventId}:`, err);
+    });
 
     // --- Usage and Rate Limiting ---
     const usageCount = getUsage(tenantId);

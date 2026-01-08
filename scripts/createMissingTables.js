@@ -63,6 +63,21 @@ async function main() {
       name: 'SecurityAuditLog',
       description: 'Security audit event logs (CRITICAL - Required for security features)',
       critical: true
+    },
+    {
+      name: 'Events',
+      description: 'Webhook events storage (CRITICAL - Required for event tracking and dashboard)',
+      critical: true
+    },
+    {
+      name: 'Integrations',
+      description: 'User integration connections (OAuth tokens for Slack, Discord, etc.)',
+      critical: false
+    },
+    {
+      name: 'WebhookEndpoints',
+      description: 'User webhook endpoints for event forwarding',
+      critical: false
     }
   ];
 
