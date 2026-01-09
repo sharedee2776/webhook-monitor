@@ -33,14 +33,20 @@ const Dashboard: React.FC = () => {
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      // Always clear localStorage for apiKey and tenantId on user change
+      localStorage.removeItem('apiKey');
+      localStorage.removeItem('tenantId');
       if (firebaseUser) {
         // Check if email is verified
         if (!firebaseUser.emailVerified) {
-          // Redirect to login with message
           navigate('/login?verify=required');
           return;
         }
         setUser(firebaseUser);
+        // Use Firebase UID as tenant ID
+        const assignedTenantId = firebaseUser.uid;
+        setTenantId(assignedTenantId);
+        localStorage.setItem('tenantId', assignedTenantId);
       } else {
         setUser(null);
         setTenantId('');
@@ -50,23 +56,6 @@ const Dashboard: React.FC = () => {
     });
     return () => unsubscribe();
   }, [navigate]);
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      // Always clear localStorage for apiKey and tenantId on user change
-      localStorage.removeItem('apiKey');
-      localStorage.removeItem('tenantId');
-      setUser(firebaseUser);
-      if (firebaseUser) {
-        // Use Firebase UID as tenant ID
-        const assignedTenantId = firebaseUser.uid;
-        setTenantId(assignedTenantId);
-        localStorage.setItem('tenantId', assignedTenantId);
-        // ...existing code...
-      } else {
-        setTenantId('');
-      }
-    });
-    return () => unsubscribe();
-  }, []);
 
   React.useEffect(() => {
     if (!user || !tenantId) {
