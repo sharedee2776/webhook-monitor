@@ -46,7 +46,20 @@ export async function dashboardEvents(
     // Get events from table storage (primary source)
     let events: any[] = [];
     try {
+      context.log("[DASHBOARD_EVENTS] Querying table storage...", {
+        tenantId,
+        hasConnectionString: !!process.env.AzureWebJobsStorage,
+        tableName: "Events"
+      });
+      
       const tableEvents = await getEventsForTenantFromTable(tenantId, 100); // Get more events for filtering
+      
+      context.log("[DASHBOARD_EVENTS] Raw table events received", {
+        count: tableEvents.length,
+        tenantId,
+        sampleEventIds: tableEvents.slice(0, 3).map(e => e.rowKey)
+      });
+      
       events = tableEvents.map(e => ({
         eventId: e.rowKey,
         id: e.rowKey,
@@ -64,11 +77,28 @@ export async function dashboardEvents(
         retry_count: e.retry_count || 0,
         error_message: e.error_message,
       }));
-      context.log("[DASHBOARD_EVENTS] ✅ Fetched events from table", { count: events.length });
+      
+      context.log("[DASHBOARD_EVENTS] ✅ Fetched events from table", { 
+        count: events.length,
+        tenantId,
+        eventTypes: [...new Set(events.map(e => e.eventType))]
+      });
     } catch (tableError: any) {
-      context.error("[DASHBOARD_EVENTS] Failed to fetch from table, falling back", { error: tableError.message });
+      context.error("[DASHBOARD_EVENTS] ❌ Failed to fetch from table, falling back", { 
+        error: tableError.message,
+        stack: tableError.stack,
+        statusCode: tableError.statusCode,
+        code: tableError.code,
+        tenantId
+      });
       // Fallback to eventStore
-      events = await getEventsForTenant(tenantId);
+      try {
+        events = await getEventsForTenant(tenantId);
+        context.log("[DASHBOARD_EVENTS] Fallback to eventStore returned", { count: events.length });
+      } catch (fallbackError: any) {
+        context.error("[DASHBOARD_EVENTS] ❌ Fallback also failed", { error: fallbackError.message });
+        events = [];
+      }
     }
 
     // Filter events by retention
