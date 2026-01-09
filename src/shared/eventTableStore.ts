@@ -19,12 +19,24 @@ export async function saveEventToTable(
   endpointUrl?: string
 ): Promise<string> {
   if (!eventsTable) {
-    console.warn("Azure Table Storage not configured, event not saved to table");
+    const errorMsg = "Azure Table Storage not configured, event not saved to table";
+    console.error("[EVENT_TABLE] ❌", errorMsg, {
+      connectionString: !!process.env.AzureWebJobsStorage,
+      tenantId: event.tenantId
+    });
     return randomUUID();
   }
 
   const eventId = (event as any).eventId || randomUUID();
   const timestamp = event.receivedAt || new Date().toISOString();
+
+  console.log("[EVENT_TABLE] Saving event to table...", {
+    eventId,
+    tenantId: event.tenantId,
+    eventType: event.eventType,
+    endpointId: endpointId || event.endpointId || 'none',
+    tableName: "Events"
+  });
 
   const entity: EventEntity = {
     partitionKey: event.tenantId,
@@ -43,19 +55,41 @@ export async function saveEventToTable(
 
   try {
     await eventsTable.createEntity(entity);
+    console.log("[EVENT_TABLE] ✅ Event saved successfully", {
+      eventId,
+      tenantId: event.tenantId,
+      eventType: event.eventType,
+      tableName: "Events"
+    });
     return eventId;
   } catch (error: any) {
     // If table doesn't exist, try to create it
     if (error.statusCode === 404 || error.message?.includes("does not exist")) {
       try {
+        console.log("[EVENT_TABLE] Table doesn't exist, creating...", { tableName: "Events" });
         await eventsTable.createTable();
         await eventsTable.createEntity(entity);
+        console.log("[EVENT_TABLE] ✅ Table created and event saved", {
+          eventId,
+          tenantId: event.tenantId
+        });
         return eventId;
-      } catch (createError) {
-        console.error("Failed to create Events table:", createError);
+      } catch (createError: any) {
+        console.error("[EVENT_TABLE] ❌ Failed to create Events table:", {
+          error: createError.message,
+          statusCode: createError.statusCode,
+          code: createError.code
+        });
         throw createError;
       }
     }
+    console.error("[EVENT_TABLE] ❌ Failed to save event:", {
+      error: error.message,
+      statusCode: error.statusCode,
+      code: error.code,
+      eventId,
+      tenantId: event.tenantId
+    });
     throw error;
   }
 }
@@ -113,10 +147,19 @@ export async function getEventsForTenantFromTable(
   }
 
   try {
+    console.log("[EVENT_TABLE] Querying events for tenant...", {
+      tenantId,
+      limit,
+      tableName: "Events"
+    });
+    
     const entities: EventEntity[] = [];
+    const filter = `PartitionKey eq '${tenantId}'`;
+    console.log("[EVENT_TABLE] Using filter:", { filter });
+    
     const query = eventsTable.listEntities<EventEntity>({
       queryOptions: {
-        filter: `PartitionKey eq '${tenantId}'`,
+        filter,
       },
     });
 
@@ -125,6 +168,12 @@ export async function getEventsForTenantFromTable(
       if (entities.length >= limit) break;
     }
 
+    console.log("[EVENT_TABLE] ✅ Query completed", {
+      tenantId,
+      found: entities.length,
+      limit
+    });
+
     // Sort by timestamp descending (newest first)
     return entities.sort((a, b) => 
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
@@ -132,9 +181,18 @@ export async function getEventsForTenantFromTable(
   } catch (error: any) {
     if (error.statusCode === 404) {
       // Table doesn't exist yet
+      console.warn("[EVENT_TABLE] ⚠️ Table doesn't exist yet", {
+        tenantId,
+        tableName: "Events"
+      });
       return [];
     }
-    console.error("Error querying events from table:", error);
+    console.error("[EVENT_TABLE] ❌ Error querying events from table:", {
+      error: error.message,
+      statusCode: error.statusCode,
+      code: error.code,
+      tenantId
+    });
     return [];
   }
 }

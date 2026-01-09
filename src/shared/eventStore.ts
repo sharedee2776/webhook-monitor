@@ -29,6 +29,12 @@ export async function saveEvent(
   // Save to Azure Table Storage (primary storage for production)
   if (apiKey && headers) {
     try {
+      console.log("[EVENT_STORE] Saving to table storage...", {
+        eventId: (event as any).eventId,
+        tenantId: event.tenantId,
+        hasApiKey: !!apiKey,
+        hasHeaders: !!headers
+      });
       await saveEventToTable(
         event, 
         apiKey, 
@@ -37,10 +43,24 @@ export async function saveEvent(
         event.endpointId,
         event.endpointUrl
       );
-    } catch (err) {
-      console.error("Failed to save event to Azure Table Storage:", err);
+      console.log("[EVENT_STORE] ✅ Saved to table storage successfully");
+    } catch (err: any) {
+      console.error("[EVENT_STORE] ❌ Failed to save event to Azure Table Storage:", {
+        error: err.message,
+        statusCode: err.statusCode,
+        code: err.code,
+        eventId: (event as any).eventId,
+        tenantId: event.tenantId
+      });
       throw err; // Re-throw to allow caller to handle
     }
+  } else {
+    console.warn("[EVENT_STORE] ⚠️ Skipping table storage save - missing apiKey or headers", {
+      hasApiKey: !!apiKey,
+      hasHeaders: !!headers,
+      eventId: (event as any).eventId,
+      tenantId: event.tenantId
+    });
   }
 
   // Save to Azure Blob Storage (backup/archive)
