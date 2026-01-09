@@ -37,14 +37,35 @@ app.http("webhookEndpointsGet", {
       const tenantId = auth.tenantId;
       const endpoints = await getTenantEndpoints(tenantId);
 
-      // Format for frontend
-      const formattedEndpoints = endpoints.map(ep => ({
-        id: ep.rowKey,
-        name: ep.name,
-        url: ep.url,
-        active: ep.active,
-        createdAt: ep.createdAt,
-      }));
+      // Get events to find last delivery time for each endpoint
+      const { getEventsForTenantFromTable } = await import("../shared/eventTableStore");
+      let events: any[] = [];
+      try {
+        events = await getEventsForTenantFromTable(tenantId, 100);
+      } catch (err) {
+        context.log("Failed to fetch events for last delivery time", { error: err });
+      }
+
+      // Format for frontend with last delivery time
+      const formattedEndpoints = endpoints.map(ep => {
+        // Find most recent event for this endpoint
+        const endpointEvents = events.filter(e => e.endpointId === ep.rowKey);
+        const lastEvent = endpointEvents.length > 0 
+          ? endpointEvents.sort((a, b) => 
+              new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+            )[0]
+          : null;
+        
+        return {
+          id: ep.rowKey,
+          name: ep.name,
+          url: ep.url,
+          active: ep.active,
+          createdAt: ep.createdAt,
+          lastDeliveryTime: lastEvent ? lastEvent.timestamp : null,
+          lastDeliveryStatus: lastEvent ? lastEvent.status : null,
+        };
+      });
 
       return { 
         status: 200, 

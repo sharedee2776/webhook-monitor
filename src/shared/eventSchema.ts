@@ -5,6 +5,8 @@ export interface IngestedEvent {
   source: string;
   receivedAt: string;
   payload: Record<string, any>;
+  endpointId?: string; // ID of the webhook endpoint that received this event
+  endpointUrl?: string; // URL of the endpoint (for display purposes)
 }
 
 // Event stored in Azure Table Storage
@@ -24,4 +26,6 @@ export interface EventEntity {
   error_message?: string; // Error message if failed
   eventType: string;
   source: string;
+  endpointId?: string; // ID of the webhook endpoint that received this event (if applicable)
+  endpointUrl?: string; // URL of the endpoint (for display purposes)
 }
