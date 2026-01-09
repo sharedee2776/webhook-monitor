@@ -1,66 +1,12 @@
 import { updateEventStatus } from "./eventTableStore";
 import { notifyIntegrations } from "./integrationNotifier";
-import { TableClient } from "@azure/data-tables";
-
-const connectionString = process.env.AzureWebJobsStorage || process.env.AZURE_STORAGE_CONNECTION_STRING;
-const endpointsTable = connectionString
-  ? TableClient.fromConnectionString(connectionString, "WebhookEndpoints")
-  : null;
+import { getTenantEndpoints } from "./webhookEndpointsStore";
 
 interface WebhookEndpoint {
   id: string;
   name: string;
   url: string;
   active: boolean;
-  tenantId: string;
-}
-
-/**
- * Get active webhook endpoints for a tenant
- */
-async function getTenantEndpoints(tenantId: string): Promise<WebhookEndpoint[]> {
-  if (!endpointsTable) {
-    // Fallback to local file
-    try {
-      const fs = require("fs");
-      const path = require("path");
-      const endpointsFile = path.join(process.cwd(), "data", "webhookEndpoints.json");
-      if (fs.existsSync(endpointsFile)) {
-        const data = JSON.parse(fs.readFileSync(endpointsFile, "utf-8"));
-        const endpoints = data[tenantId] || [];
-        return endpoints.filter((ep: any) => ep.active !== false);
-      }
-    } catch (err) {
-      console.error("Error reading endpoints from file:", err);
-    }
-    return [];
-  }
-
-  try {
-    const endpoints: WebhookEndpoint[] = [];
-    const query = endpointsTable.listEntities<WebhookEndpoint>({
-      queryOptions: {
-        filter: `PartitionKey eq '${tenantId}' and active eq true`,
-      },
-    });
-
-    for await (const entity of query) {
-      endpoints.push({
-        id: (entity.rowKey as string) || '',
-        name: entity.name as string,
-        url: entity.url as string,
-        active: entity.active as boolean,
-        tenantId: entity.partitionKey as string,
-      });
-    }
-    return endpoints;
-  } catch (error: any) {
-    if (error.statusCode === 404) {
-      return [];
-    }
-    console.error("Error querying endpoints:", error);
-    return [];
-  }
 }
 
 /**
@@ -130,7 +76,16 @@ export async function forwardEventToEndpoints(
   eventId: string,
   event: any
 ): Promise<void> {
-  const endpoints = await getTenantEndpoints(tenantId);
+  // Get active endpoints from Azure Table Storage
+  const endpointEntities = await getTenantEndpoints(tenantId);
+  const endpoints: WebhookEndpoint[] = endpointEntities
+    .filter(ep => ep.active)
+    .map(ep => ({
+      id: ep.rowKey,
+      name: ep.name,
+      url: ep.url,
+      active: ep.active,
+    }));
 
   if (endpoints.length === 0) {
     // No endpoints to forward to, mark as success

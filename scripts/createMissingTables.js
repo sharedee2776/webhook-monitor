@@ -76,8 +76,8 @@ async function main() {
     },
     {
       name: 'WebhookEndpoints',
-      description: 'User webhook endpoints for event forwarding',
-      critical: false
+      description: 'User webhook endpoints for event forwarding (CRITICAL - Required for endpoint management)',
+      critical: true
     }
   ];
 

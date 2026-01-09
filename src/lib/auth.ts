@@ -32,6 +32,7 @@ export const validateApiKey = (apiKey: string): ApiKeyData | null => {
 };
 import { TableClient } from "@azure/data-tables";
 import { logSecurityEvent, getClientIp } from "../shared/securityAudit";
+import { getTenant, setTenantPlan } from "../shared/tenantStore";
 
 const apiKeysTable = TableClient.fromConnectionString(
   process.env.AzureWebJobsStorage!,
@@ -98,11 +99,28 @@ export async function authenticateApiKey(
       }
     }
 
+    const tenantId = entity.tenantId as string;
+    const plan = (entity.plan as string) ?? "free";
+
+    // Auto-create tenant if it doesn't exist
+    try {
+      const tenant = await getTenant(tenantId);
+      if (!tenant) {
+        // Tenant doesn't exist, create it
+        await setTenantPlan(tenantId, plan as "free" | "pro" | "team", {
+          subscriptionState: "active",
+        });
+      }
+    } catch (tenantError: any) {
+      // Log error but don't fail authentication
+      console.error(`Failed to auto-create tenant ${tenantId}:`, tenantError);
+    }
+
     // Log successful authentication
     if (request) {
       await logSecurityEvent({
         eventType: "auth_success",
-        tenantId: entity.tenantId as string,
+        tenantId,
         apiKey,
         ipAddress: getClientIp(request),
         userAgent: request.headers?.get("user-agent"),
@@ -111,8 +129,8 @@ export async function authenticateApiKey(
     }
 
     return {
-      tenantId: entity.tenantId as string,
-      plan: (entity.plan as string) ?? "free"
+      tenantId,
+      plan,
     };
   } catch (error: any) {
     if (request) {
