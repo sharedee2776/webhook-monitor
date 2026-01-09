@@ -56,19 +56,23 @@ export async function ingestWebhook(
     const rawBody = await request.text();
     context.log("[INGEST] Raw body received", { bodyLength: rawBody.length });
     
-    // --- API Key Validation ---
+    // --- API Key Validation (CRITICAL: Must be first check) ---
     const apiKey = request.headers.get("x-api-key") ?? request.headers.get("X-API-Key");
     if (!apiKey) {
       context.log("[INGEST] ❌ Missing API key");
-      await logSecurityEvent({
+      // Don't await security log - return immediately
+      logSecurityEvent({
         eventType: "auth_failure",
         ipAddress: getClientIp(request),
         userAgent: request.headers.get("user-agent") || undefined,
         endpoint: "/api/ingestWebhook",
         method: "POST",
         errorMessage: "Missing API key",
-      });
-      return { status: 401, body: "Invalid or missing API key" };
+      }).catch(() => {}); // Fire and forget
+      return { 
+        status: 401, 
+        jsonBody: { error: "Invalid or missing API key" }
+      };
     }
 
     context.log("[INGEST] API key provided, validating...");
@@ -77,14 +81,17 @@ export async function ingestWebhook(
     const keyInfo = await authenticateApiKey(apiKey, request, "/api/ingestWebhook");
     if (!keyInfo) {
       context.log("[INGEST] ❌ Invalid API key");
-      return { status: 401, body: "Invalid or missing API key" };
+      return { 
+        status: 401, 
+        jsonBody: { error: "Invalid or missing API key" }
+      };
     }
     
     tenantId = keyInfo.tenantId;
     (context as any).tenantId = tenantId;
     
-    // Clean tenant ID (remove any invalid characters like semicolons)
-    const cleanTenantId = tenantId.replace(/[^a-zA-Z0-9_-]/g, '');
+    // Clean tenant ID (remove any invalid characters like semicolons, trim, lowercase)
+    let cleanTenantId = tenantId.trim().toLowerCase().replace(/[^a-zA-Z0-9_-]/g, '');
     if (cleanTenantId !== tenantId) {
       context.log("[INGEST] ⚠️ Tenant ID cleaned", { 
         original: tenantId, 
@@ -430,9 +437,11 @@ export async function ingestWebhook(
       saved: eventSaved,
     });
     
-    return {
-      status: 200,
+    // Ensure response is always returned
+    const response = {
+      status: 200 as const,
       headers: {
+        "Content-Type": "application/json",
         "X-Usage-Limit": plan.monthlyLimit.toString(),
         "X-Usage-Used": used.toString(),
         "X-Usage-Remaining": remaining.toString(),
@@ -441,13 +450,16 @@ export async function ingestWebhook(
         "x-rate-limit-remaining": String(rate.remaining ?? 0),
         "X-Event-ID": eventId,
       },
-      body: JSON.stringify({ 
+      jsonBody: { 
         ok: true,
         eventId,
         endpointId: endpointId || null,
         saved: eventSaved,
-      })
+      }
     };
+    
+    context.log("[INGEST] ✅ Returning response", { status: 200, eventId });
+    return response;
   } catch (err: any) {
     // Generic error response
     context.error("[INGEST] ❌ Unhandled error", {

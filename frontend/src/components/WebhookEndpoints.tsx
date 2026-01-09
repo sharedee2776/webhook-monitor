@@ -350,7 +350,14 @@ const WebhookEndpoints: React.FC = () => {
               {endpoints.map((ep, idx) => (
                 <tr key={ep.id} style={{ borderBottom: idx < endpoints.length - 1 ? '1px solid #e5e7eb' : 'none', background: idx % 2 === 0 ? '#fff' : '#f9fafb' }}>
                   <td style={{ padding: '0.75rem 1rem', fontWeight: 500 }}>{ep.name}</td>
-                  <td style={{ padding: '0.75rem 1rem', color: '#666', fontFamily: 'monospace', fontSize: '0.85rem' }}>{ep.url}</td>
+                  <td style={{ 
+                    padding: '0.75rem 1rem', 
+                    color: '#666', 
+                    fontFamily: 'monospace', 
+                    fontSize: '0.85rem',
+                    wordBreak: 'break-all',
+                    maxWidth: '400px'
+                  }}>{ep.url}</td>
                   <td style={{ padding: '0.75rem 1rem', fontSize: '0.85rem', color: '#666' }}>
                     {ep.createdAt ? new Date(ep.createdAt).toLocaleString() : 'N/A'}
                   </td>
