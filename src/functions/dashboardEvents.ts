@@ -37,8 +37,8 @@ export async function dashboardEvents(
     }
 
     let tenantId = keyInfo.tenantId;
-    // Clean tenant ID (remove any invalid characters like semicolons) - must match ingestWebhook cleaning
-    const cleanTenantId = tenantId.replace(/[^a-zA-Z0-9_-]/g, '');
+    // Clean tenant ID (trim, lowercase, remove invalid chars) - MUST match ingestWebhook cleaning exactly
+    let cleanTenantId = tenantId.trim().toLowerCase().replace(/[^a-zA-Z0-9_-]/g, '');
     if (cleanTenantId !== tenantId) {
       context.log("[DASHBOARD_EVENTS] ⚠️ Tenant ID cleaned", { 
         original: tenantId, 
