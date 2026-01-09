@@ -41,13 +41,6 @@ const Dashboard: React.FC = () => {
           return;
         }
         setUser(firebaseUser);
-        // Use Firebase UID as tenant ID, or get from localStorage as fallback
-        const storedTenantId = localStorage.getItem('tenantId') || firebaseUser.uid;
-        setTenantId(storedTenantId);
-        // Store it for future use
-        if (!localStorage.getItem('tenantId')) {
-          localStorage.setItem('tenantId', storedTenantId);
-        }
       } else {
         setUser(null);
         setTenantId('');
@@ -57,6 +50,23 @@ const Dashboard: React.FC = () => {
     });
     return () => unsubscribe();
   }, [navigate]);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      // Always clear localStorage for apiKey and tenantId on user change
+      localStorage.removeItem('apiKey');
+      localStorage.removeItem('tenantId');
+      setUser(firebaseUser);
+      if (firebaseUser) {
+        // Use Firebase UID as tenant ID
+        const assignedTenantId = firebaseUser.uid;
+        setTenantId(assignedTenantId);
+        localStorage.setItem('tenantId', assignedTenantId);
+        // ...existing code...
+      } else {
+        setTenantId('');
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   React.useEffect(() => {
     if (!user || !tenantId) {
