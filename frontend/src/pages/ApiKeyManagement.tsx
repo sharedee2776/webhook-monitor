@@ -25,17 +25,16 @@ const ApiKeyManagement: React.FC = () => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
-        const storedTenantId = localStorage.getItem('tenantId') || firebaseUser.uid;
-        setTenantId(storedTenantId);
-        if (!localStorage.getItem('tenantId')) {
-          localStorage.setItem('tenantId', storedTenantId);
-        }
+        // Always use Firebase UID as tenantId for isolation
+        const assignedTenantId = firebaseUser.uid;
+        setTenantId(assignedTenantId);
+        localStorage.setItem('tenantId', assignedTenantId);
         // Always initialize tenant and API key on first login
         try {
           const response = await fetch(apiConfig.endpoints.initializeTenant, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tenantId: storedTenantId, plan: 'free' })
+            body: JSON.stringify({ tenantId: assignedTenantId, plan: 'free' })
           });
           const data = await response.json();
           if (data.apiKey) {
@@ -51,6 +50,7 @@ const ApiKeyManagement: React.FC = () => {
   }, []);
 
   const fetchApiKeys = async () => {
+
     if (!tenantId) {
       setLoading(false);
       return;
@@ -58,6 +58,7 @@ const ApiKeyManagement: React.FC = () => {
 
     setLoading(true);
     try {
+
       // First, try to initialize tenant if it doesn't exist
       try {
         await fetch(apiConfig.endpoints.initializeTenant, {
@@ -70,16 +71,16 @@ const ApiKeyManagement: React.FC = () => {
         console.log('Tenant initialization:', initError);
       }
 
+
       // Get API key from localStorage (if user has one)
       const storedApiKey = localStorage.getItem('apiKey');
-      
       if (!storedApiKey) {
         // No API key in localStorage, show instructions
         setLoading(false);
         return;
       }
 
-      // Fetch API keys from server
+      // Fetch API keys from server, always for the current tenantId
       const response = await fetch(apiConfig.endpoints.listApiKeys, {
         headers: {
           'x-api-key': storedApiKey
@@ -108,7 +109,8 @@ const ApiKeyManagement: React.FC = () => {
 
       const data: any = await handleApiResponse(response);
       if (data.keys && Array.isArray(data.keys)) {
-        setApiKeys(data.keys);
+        // Only show API keys for the current tenantId
+        setApiKeys(data.keys.filter((k: any) => k.tenantId === tenantId || !k.tenantId));
       } else {
         setApiKeys([]);
       }
@@ -179,6 +181,14 @@ const ApiKeyManagement: React.FC = () => {
 
   return (
     <div style={{ margin: '2rem 0', padding: '1rem' }}>
+      <div style={{ marginBottom: '1rem', fontSize: '1rem', color: '#222' }}>
+        <strong>Assigned Tenant ID:</strong> {tenantId}
+        {user && user.email && (
+          <span style={{ marginLeft: 12, color: '#666', fontSize: '0.95em' }}>
+            <strong>Custom ID:</strong> {user.email.replace(/@.*/, '')}
+          </span>
+        )}
+      </div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
           <Key size={20} /> API Keys

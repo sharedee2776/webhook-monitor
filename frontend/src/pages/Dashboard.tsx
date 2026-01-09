@@ -112,7 +112,14 @@ const Dashboard: React.FC = () => {
     <div style={{ maxWidth: 1200, margin: '2rem auto', padding: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {showTenantInfo && (
         <div style={{ background: '#f8fafc', border: '1px solid #e0e7ff', borderRadius: 8, padding: '1rem', marginBottom: '1rem' }}>
-          <div style={{ fontSize: '1rem', color: '#222', marginBottom: '0.5rem' }}><strong>Tenant ID:</strong> {tenantId}</div>
+          <div style={{ fontSize: '1rem', color: '#222', marginBottom: '0.5rem' }}>
+            <strong>Assigned Tenant ID:</strong> {tenantId}
+            {user && user.email && (
+              <span style={{ marginLeft: 12, color: '#666', fontSize: '0.95em' }}>
+                <strong>Custom ID:</strong> {user.email.replace(/@.*/, '')}
+              </span>
+            )}
+          </div>
           <div style={{ fontSize: '1rem', color: '#222' }}><strong>API Key:</strong> {apiKey || 'No API key found'}</div>
         </div>
       )}
