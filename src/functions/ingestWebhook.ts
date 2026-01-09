@@ -32,6 +32,14 @@ export async function ingestWebhook(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
+  // ⚠️ CRITICAL: Log immediately to verify function is being called
+  context.log("[INGEST] ========== FUNCTION CALLED ==========", {
+    method: request.method,
+    url: request.url,
+    timestamp: new Date().toISOString(),
+    functionName: "ingestWebhook"
+  });
+  
   const startTime = Date.now();
   let tenantId: string | undefined;
   let eventId: string | undefined;
@@ -74,6 +82,16 @@ export async function ingestWebhook(
     
     tenantId = keyInfo.tenantId;
     (context as any).tenantId = tenantId;
+    
+    // Clean tenant ID (remove any invalid characters like semicolons)
+    const cleanTenantId = tenantId.replace(/[^a-zA-Z0-9_-]/g, '');
+    if (cleanTenantId !== tenantId) {
+      context.log("[INGEST] ⚠️ Tenant ID cleaned", { 
+        original: tenantId, 
+        cleaned: cleanTenantId 
+      });
+      tenantId = cleanTenantId;
+    }
     
     context.log("[INGEST] ✅ API key validated", { tenantId, plan: keyInfo.plan });
 
@@ -462,8 +480,13 @@ export async function ingestWebhook(
   }
 }
 
+// Register the function
 app.http("ingestWebhook", {
+  route: "ingestWebhook", // Explicitly set route to match function.json
   methods: ["POST"],
   authLevel: "anonymous",
   handler: ingestWebhook
 });
+
+// Log registration (this runs at module load time)
+console.log("[INGEST] Function registered: ingestWebhook at route /api/ingestWebhook");

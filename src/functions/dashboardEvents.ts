@@ -36,7 +36,17 @@ export async function dashboardEvents(
       return { status: 401, body: "Invalid or missing API key" };
     }
 
-    const tenantId = keyInfo.tenantId;
+    let tenantId = keyInfo.tenantId;
+    // Clean tenant ID (remove any invalid characters like semicolons) - must match ingestWebhook cleaning
+    const cleanTenantId = tenantId.replace(/[^a-zA-Z0-9_-]/g, '');
+    if (cleanTenantId !== tenantId) {
+      context.log("[DASHBOARD_EVENTS] ⚠️ Tenant ID cleaned", { 
+        original: tenantId, 
+        cleaned: cleanTenantId 
+      });
+      tenantId = cleanTenantId;
+    }
+    
     const plan = keyInfo.plan ?? "free";
     const retentionMs = RETENTION_BY_PLAN[plan] ?? RETENTION_BY_PLAN.free;
     const cutoff = Date.now() - retentionMs;
