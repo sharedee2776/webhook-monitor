@@ -600,12 +600,16 @@ response = requests.post(
               <span style={{ fontSize: '0.85rem', color: '#666', flex: 1 }}>SHA-256 hash signature (required)</span>
               <button
                 onClick={async () => {
-                  if (testBody && timestamp && apiKey) {
+                  if (testBody && apiKey) {
                     if (!validateJSON(testBody)) {
                       setJsonError('Invalid JSON format. Please fix the test body first.');
                       return;
                     }
-                    const sig = await generateSignature(testBody, timestamp, apiKey);
+                    // Always generate a fresh timestamp for signature
+                    const freshTimestamp = generateTimestamp();
+                    setTimestamp(freshTimestamp);
+                    setRevealedTimestamp(true);
+                    const sig = await generateSignature(testBody, freshTimestamp, apiKey);
                     if (sig) {
                       setSignature(sig);
                       setRevealedSignature(true);
