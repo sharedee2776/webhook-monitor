@@ -22,13 +22,28 @@ const ApiKeyManagement: React.FC = () => {
   const [tenantId, setTenantId] = useState<string>('');
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
         const storedTenantId = localStorage.getItem('tenantId') || firebaseUser.uid;
         setTenantId(storedTenantId);
         if (!localStorage.getItem('tenantId')) {
           localStorage.setItem('tenantId', storedTenantId);
+        }
+        // Always initialize tenant and API key on first login
+        try {
+          const response = await fetch(apiConfig.endpoints.initializeTenant, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tenantId: storedTenantId, plan: 'free' })
+          });
+          const data = await response.json();
+          if (data.apiKey) {
+            localStorage.setItem('apiKey', data.apiKey);
+            setToast({ message: 'API key generated and tenant initialized!', type: 'success' });
+          }
+        } catch (err) {
+          setToast({ message: 'Error initializing tenant or API key. Please try again.', type: 'error' });
         }
       }
     });

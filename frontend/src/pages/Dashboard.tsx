@@ -105,9 +105,17 @@ const Dashboard: React.FC = () => {
   }, [user, tenantId]);
   const apiKey = localStorage.getItem('apiKey');
   const hasApiKey = !!apiKey;
+  // Show tenantId and API key in dashboard for user visibility
+  const showTenantInfo = user && tenantId;
 
   return (
     <div style={{ maxWidth: 1200, margin: '2rem auto', padding: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      {showTenantInfo && (
+        <div style={{ background: '#f8fafc', border: '1px solid #e0e7ff', borderRadius: 8, padding: '1rem', marginBottom: '1rem' }}>
+          <div style={{ fontSize: '1rem', color: '#222', marginBottom: '0.5rem' }}><strong>Tenant ID:</strong> {tenantId}</div>
+          <div style={{ fontSize: '1rem', color: '#222' }}><strong>API Key:</strong> {apiKey || 'No API key found'}</div>
+        </div>
+      )}
       <UptimeRobotStatus />
       
       {/* Key Metrics - What Matters in 5 Seconds */}
