@@ -21,10 +21,23 @@ const WebhookEndpoints: React.FC = () => {
     fetch(apiConfig.endpoints.webhookEndpoints, {
       headers: { 'x-api-key': apiKey }
     })
-      .then(res => {
+      .then(async (res) => {
         if (!res.ok) {
+          let errorMessage = 'Failed to load endpoints';
+          try {
+            const errorData = await res.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch {
+            const errorText = await res.text();
+            errorMessage = errorText || errorMessage;
+          }
+          
           if (res.status === 401) {
             setError('Authentication failed. Please check your API key.');
+          } else if (res.status === 500) {
+            setError('Server error. Please try again later.');
+          } else {
+            setError(errorMessage);
           }
           return { endpoints: [] };
         }
@@ -58,20 +71,28 @@ const WebhookEndpoints: React.FC = () => {
         },
         body: JSON.stringify({ name, url, active: true })
       });
+      
       if (!res.ok) {
-        const errorText = await res.text();
+        let errorMessage = 'Failed to add endpoint';
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          const errorText = await res.text();
+          errorMessage = errorText || errorMessage;
+        }
+        
         if (res.status === 401) {
           throw new Error('Authentication failed. Please check your API key.');
         } else if (res.status === 400) {
-          try {
-            const errorData = JSON.parse(errorText);
-            throw new Error(errorData.error || 'Invalid request. Please check your input.');
-          } catch {
-            throw new Error(errorText || `Failed to add endpoint (${res.status})`);
-          }
+          throw new Error(errorMessage);
+        } else if (res.status === 500) {
+          throw new Error('Server error. Please try again later or contact support.');
+        } else {
+          throw new Error(`${errorMessage} (Status: ${res.status})`);
         }
-        throw new Error(errorText || `Failed to add endpoint (${res.status})`);
       }
+      
       const data = await res.json();
       setEndpoints((prev) => [...prev, data.endpoint]);
       setName('');
@@ -87,12 +108,17 @@ const WebhookEndpoints: React.FC = () => {
     setEndpoints(endpoints.map(ep => ep.id === id ? { ...ep, active: !ep.active } : ep));
   };
 
-  const removeEndpoint = async (id: number) => {
+  const removeEndpoint = async (id: string | number) => {
+    if (!confirm('Are you sure you want to remove this endpoint?')) {
+      return;
+    }
+    
     setError('');
     if (!apiKey) {
       setError('API key is required');
       return;
     }
+    
     try {
       const res = await fetch(apiConfig.endpoints.webhookEndpoints, {
         method: 'DELETE',
@@ -100,15 +126,30 @@ const WebhookEndpoints: React.FC = () => {
           'Content-Type': 'application/json', 
           'x-api-key': apiKey 
         },
-        body: JSON.stringify({ id })
+        body: JSON.stringify({ id: String(id) })
       });
+      
       if (!res.ok) {
-        const errorText = await res.text();
+        let errorMessage = 'Failed to remove endpoint';
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          const errorText = await res.text();
+          errorMessage = errorText || errorMessage;
+        }
+        
         if (res.status === 401) {
           throw new Error('Authentication failed. Please check your API key.');
+        } else if (res.status === 404) {
+          throw new Error('Endpoint not found');
+        } else if (res.status === 500) {
+          throw new Error('Server error. Please try again later or contact support.');
+        } else {
+          throw new Error(`${errorMessage} (Status: ${res.status})`);
         }
-        throw new Error(errorText || `Failed to remove endpoint (${res.status})`);
       }
+      
       const data = await res.json();
       setEndpoints(data.endpoints || []);
     } catch (err: any) {
@@ -275,10 +316,11 @@ const WebhookEndpoints: React.FC = () => {
                   <td style={{ padding: '0.75rem 1rem' }}>
                     <input 
                       type="checkbox" 
-                      checked={ep.active} 
+                      checked={ep.active !== false} 
                       onChange={() => toggleActive(ep.id)} 
                       disabled={loading}
                       style={{ cursor: loading ? 'not-allowed' : 'pointer' }}
+                      title={ep.active ? 'Endpoint is active' : 'Endpoint is disabled'}
                     />
                   </td>
                   <td style={{ padding: '0.75rem 1rem' }}>
@@ -295,6 +337,7 @@ const WebhookEndpoints: React.FC = () => {
                         borderRadius: 4
                       }} 
                       disabled={loading}
+                      title="Remove endpoint"
                     >
                       Remove
                     </button>
