@@ -29,9 +29,17 @@ export async function saveEvent(
   // Save to Azure Table Storage (primary storage for production)
   if (apiKey && headers) {
     try {
-      await saveEventToTable(event, apiKey, headers, 'pending');
+      await saveEventToTable(
+        event, 
+        apiKey, 
+        headers, 
+        'pending',
+        event.endpointId,
+        event.endpointUrl
+      );
     } catch (err) {
       console.error("Failed to save event to Azure Table Storage:", err);
+      throw err; // Re-throw to allow caller to handle
     }
   }
 

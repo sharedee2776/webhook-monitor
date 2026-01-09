@@ -14,7 +14,9 @@ export async function saveEventToTable(
   event: IngestedEvent,
   apiKey: string,
   headers: Record<string, string>,
-  status: 'pending' | 'success' | 'failed' | 'partial' = 'pending'
+  status: 'pending' | 'success' | 'failed' | 'partial' = 'pending',
+  endpointId?: string,
+  endpointUrl?: string
 ): Promise<string> {
   if (!eventsTable) {
     console.warn("Azure Table Storage not configured, event not saved to table");
@@ -35,6 +37,8 @@ export async function saveEventToTable(
     eventType: event.eventType,
     source: event.source || 'custom',
     retry_count: 0,
+    endpointId: endpointId || event.endpointId,
+    endpointUrl: endpointUrl || event.endpointUrl,
   };
 
   try {

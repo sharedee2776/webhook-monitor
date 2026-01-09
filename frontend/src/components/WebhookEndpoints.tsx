@@ -103,9 +103,45 @@ const WebhookEndpoints: React.FC = () => {
     }
   };
 
-  const toggleActive = async (id: number) => {
-    // For demo, just toggle locally. For real, add PATCH/PUT to backend.
-    setEndpoints(endpoints.map(ep => ep.id === id ? { ...ep, active: !ep.active } : ep));
+  const toggleActive = async (id: string | number) => {
+    if (!apiKey) {
+      setError('API key is required');
+      return;
+    }
+    
+    const endpoint = endpoints.find(ep => ep.id === id);
+    if (!endpoint) return;
+    
+    const newActiveState = !endpoint.active;
+    
+    try {
+      const res = await fetch(`${apiConfig.endpoints.webhookEndpoints}/${id}`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'x-api-key': apiKey 
+        },
+        body: JSON.stringify({ active: newActiveState })
+      });
+      
+      if (!res.ok) {
+        let errorMessage = 'Failed to update endpoint';
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          const errorText = await res.text();
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      const data = await res.json();
+      // Update local state with the response
+      setEndpoints(endpoints.map(ep => ep.id === id ? { ...ep, active: data.endpoint?.active ?? newActiveState } : ep));
+    } catch (err: any) {
+      setError(err.message || 'Error updating endpoint');
+    }
   };
 
   const removeEndpoint = async (id: string | number) => {
@@ -304,43 +340,91 @@ const WebhookEndpoints: React.FC = () => {
               <tr>
                 <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>Name</th>
                 <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>URL</th>
-                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>Active</th>
+                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>Created At</th>
+                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>Last Delivery</th>
+                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>Status</th>
                 <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {endpoints.map(ep => (
-                <tr key={ep.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+              {endpoints.map((ep, idx) => (
+                <tr key={ep.id} style={{ borderBottom: idx < endpoints.length - 1 ? '1px solid #e5e7eb' : 'none', background: idx % 2 === 0 ? '#fff' : '#f9fafb' }}>
                   <td style={{ padding: '0.75rem 1rem', fontWeight: 500 }}>{ep.name}</td>
                   <td style={{ padding: '0.75rem 1rem', color: '#666', fontFamily: 'monospace', fontSize: '0.85rem' }}>{ep.url}</td>
-                  <td style={{ padding: '0.75rem 1rem' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={ep.active !== false} 
-                      onChange={() => toggleActive(ep.id)} 
-                      disabled={loading}
-                      style={{ cursor: loading ? 'not-allowed' : 'pointer' }}
-                      title={ep.active ? 'Endpoint is active' : 'Endpoint is disabled'}
-                    />
+                  <td style={{ padding: '0.75rem 1rem', fontSize: '0.85rem', color: '#666' }}>
+                    {ep.createdAt ? new Date(ep.createdAt).toLocaleString() : 'N/A'}
+                  </td>
+                  <td style={{ padding: '0.75rem 1rem', fontSize: '0.85rem', color: '#666' }}>
+                    {ep.lastDeliveryTime ? (
+                      <div>
+                        <div>{new Date(ep.lastDeliveryTime).toLocaleString()}</div>
+                        {ep.lastDeliveryStatus && (
+                          <div style={{ 
+                            fontSize: '0.75rem', 
+                            color: ep.lastDeliveryStatus === 'success' ? '#10b981' : 
+                                   ep.lastDeliveryStatus === 'failed' ? '#ef4444' : '#6b7280',
+                            marginTop: '0.25rem'
+                          }}>
+                            {ep.lastDeliveryStatus}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span style={{ color: '#9ca3af', fontStyle: 'italic' }}>Never</span>
+                    )}
                   </td>
                   <td style={{ padding: '0.75rem 1rem' }}>
-                    <button 
-                      onClick={() => removeEndpoint(ep.id)} 
-                      style={{ 
-                        color: '#dc2626', 
-                        background: 'none', 
-                        border: 'none', 
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        fontWeight: 500,
-                        fontSize: '0.9rem',
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: 4
-                      }} 
-                      disabled={loading}
-                      title="Remove endpoint"
-                    >
-                      Remove
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={ep.active !== false} 
+                        onChange={() => toggleActive(ep.id)} 
+                        disabled={loading}
+                        style={{ cursor: loading ? 'not-allowed' : 'pointer' }}
+                        title={ep.active ? 'Endpoint is active' : 'Endpoint is disabled'}
+                      />
+                      <span style={{ fontSize: '0.85rem', color: ep.active !== false ? '#10b981' : '#6b7280' }}>
+                        {ep.active !== false ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                  </td>
+                  <td style={{ padding: '0.75rem 1rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button 
+                        onClick={() => toggleActive(ep.id)} 
+                        style={{ 
+                          color: ep.active !== false ? '#f59e0b' : '#10b981', 
+                          background: 'none', 
+                          border: '1px solid #e5e7eb', 
+                          cursor: loading ? 'not-allowed' : 'pointer',
+                          fontWeight: 500,
+                          fontSize: '0.85rem',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: 4
+                        }} 
+                        disabled={loading}
+                        title={ep.active !== false ? 'Pause endpoint' : 'Activate endpoint'}
+                      >
+                        {ep.active !== false ? 'Pause' : 'Activate'}
+                      </button>
+                      <button 
+                        onClick={() => removeEndpoint(ep.id)} 
+                        style={{ 
+                          color: '#dc2626', 
+                          background: 'none', 
+                          border: '1px solid #e5e7eb', 
+                          cursor: loading ? 'not-allowed' : 'pointer',
+                          fontWeight: 500,
+                          fontSize: '0.85rem',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: 4
+                        }} 
+                        disabled={loading}
+                        title="Delete endpoint"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -244,3 +244,51 @@ export async function updateEndpointStatus(
     throw error;
   }
 }
+
+/**
+ * Find endpoint by URL match (for routing incoming webhooks)
+ * This tries to match the request URL or referer header to an endpoint
+ */
+export async function findEndpointByUrl(
+  tenantId: string,
+  urlToMatch: string
+): Promise<WebhookEndpointEntity | null> {
+  if (!endpointsTable || !urlToMatch) {
+    return null;
+  }
+
+  try {
+    const endpoints = await getTenantEndpoints(tenantId);
+    
+    // Try exact match first
+    let matched = endpoints.find(ep => 
+      ep.active && ep.url.trim() === urlToMatch.trim()
+    );
+    
+    if (matched) {
+      return matched;
+    }
+    
+    // Try URL hostname/path match (for cases where query params differ)
+    try {
+      const matchUrl = new URL(urlToMatch);
+      matched = endpoints.find(ep => {
+        if (!ep.active) return false;
+        try {
+          const epUrl = new URL(ep.url);
+          return epUrl.hostname === matchUrl.hostname && 
+                 epUrl.pathname === matchUrl.pathname;
+        } catch {
+          return false;
+        }
+      });
+    } catch {
+      // URL parsing failed, skip hostname matching
+    }
+    
+    return matched || null;
+  } catch (error: any) {
+    console.error("Error finding endpoint by URL:", error);
+    return null;
+  }
+}
