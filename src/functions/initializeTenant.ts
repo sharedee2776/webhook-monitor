@@ -25,11 +25,17 @@ app.http("initializeTenant", {
   authLevel: "anonymous",
   handler: async (req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
     try {
+
       const body = (await req.json().catch(() => ({}))) as { tenantId?: string; plan?: string };
-      const tenantId = body.tenantId;
-      
+      let tenantId = body.tenantId;
       if (!tenantId) {
         return { status: 400, jsonBody: { error: "Missing tenantId" } };
+      }
+      // Clean tenantId: trim, lowercase, remove non-alphanumeric/underscore/hyphen
+      const cleanTenantId = tenantId.trim().toLowerCase().replace(/[^a-zA-Z0-9_-]/g, '');
+      if (cleanTenantId !== tenantId) {
+        context.log("[INIT] ⚠️ Tenant ID cleaned", { original: tenantId, cleaned: cleanTenantId });
+        tenantId = cleanTenantId;
       }
 
       const plan = (body.plan as "free" | "pro" | "team") || "free";
