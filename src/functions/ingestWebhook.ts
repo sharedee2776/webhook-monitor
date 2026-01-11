@@ -107,7 +107,7 @@ export async function ingestWebhook(
     const signatureResult = await verifyRequestSignature(request, apiKey, rawBody, "/api/ingestWebhook");
     if (!signatureResult.valid) {
       context.log("[INGEST] ❌ Invalid signature", { error: signatureResult.error });
-      return { status: 401, body: signatureResult.error || "Invalid request signature" };
+      return { status: 401, jsonBody: { error: signatureResult.error || "Invalid request signature" } };
     }
     context.log("[INGEST] ✅ Signature verified");
 
@@ -153,7 +153,7 @@ export async function ingestWebhook(
     const maxBytes = 10 * 1024; // 10KB
     if (rawPayload.length > maxBytes) {
       context.log("[INGEST] ❌ Payload too large", { size: rawPayload.length, max: maxBytes });
-      return { status: 413, body: "Payload too large (max 10KB)" };
+      return { status: 413, jsonBody: { error: "Payload too large (max 10KB)" } };
     }
 
     // --- Tenant and Rate Limiting Checks (before saving) ---
