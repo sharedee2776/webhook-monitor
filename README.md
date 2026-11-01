@@ -1,6 +1,10 @@
 # Webhook Monitor
 
-> A production-ready, enterprise-grade SaaS platform for monitoring, analyzing, and managing webhook events with real-time analytics, robust billing, and comprehensive security features.
+> A multi-tenant SaaS for monitoring, analyzing and managing webhook events, with dashboards, alerting, usage-based plans and signed ingestion.
+
+**Who it's for:** developers and small teams who depend on webhooks from services such as Stripe or GitHub and need to see what arrived, what failed and when an endpoint goes quiet.
+
+**Status:** personal project. See [ROADMAP.md](./ROADMAP.md) for the work ahead. There is no automated test suite yet; `test-now.sh` and `test-security.js` are manual smoke tests against a running instance.
 
 [![Azure Functions](https://img.shields.io/badge/Azure-Functions-0062AD?logo=azure-functions)](https://azure.microsoft.com/services/functions/)
 [![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react)](https://reactjs.org/)
@@ -75,7 +79,7 @@
 - Azure Static Web Apps (frontend hosting)
 - GitHub Actions (CI/CD)
 
-For detailed architecture documentation, see [ARCHITECTURE.md](./ARCHITECTURE.md).
+For detailed architecture documentation, see [ARCHITECTURE.md](./docs/ARCHITECTURE.md).
 
 ---
 
@@ -102,7 +106,7 @@ All security events are logged to Azure Table Storage (`SecurityAuditLog`):
 - **HTTPS Only** - All communications encrypted in transit
 - **Secret Management** - All secrets stored in Azure App Settings (never in code)
 
-For detailed security documentation, see [SECURITY_ENHANCEMENT_PLAN.md](./SECURITY_ENHANCEMENT_PLAN.md).
+For detailed security documentation, see [SECURITY_ENHANCEMENT_PLAN.md](./docs/SECURITY_ENHANCEMENT_PLAN.md).
 
 ---
 
@@ -258,7 +262,7 @@ For complete API documentation, see [docs/](./docs/).
 **Containers:**
 - `events` - Webhook event data (JSON files)
 
-For detailed storage documentation, see [STORAGE_ARCHITECTURE.md](./STORAGE_ARCHITECTURE.md).
+For detailed storage documentation, see [STORAGE_ARCHITECTURE.md](./docs/STORAGE_ARCHITECTURE.md).
 
 ---
 
@@ -307,9 +311,7 @@ For detailed storage documentation, see [STORAGE_ARCHITECTURE.md](./STORAGE_ARCH
    This triggers GitHub Actions to deploy both frontend and backend.
 
 For detailed deployment instructions, see:
-- [PRE_DEPLOYMENT_CHECKLIST.md](./PRE_DEPLOYMENT_CHECKLIST.md)
-- [GITHUB_ACTIONS_DEPLOYMENT_FIX.md](./GITHUB_ACTIONS_DEPLOYMENT_FIX.md)
-- [FRONTEND_ENV_SETUP.md](./FRONTEND_ENV_SETUP.md)
+- [FRONTEND_ENV_SETUP.md](./docs/FRONTEND_ENV_SETUP.md)
 
 ---
 
@@ -330,7 +332,7 @@ For detailed deployment instructions, see:
    ```
 
 3. **Manual testing:**
-   See [LOCAL_TESTING_GUIDE.md](./LOCAL_TESTING_GUIDE.md) for comprehensive testing instructions.
+   See [LOCAL_TESTING_GUIDE.md](./docs/LOCAL_TESTING_GUIDE.md) for comprehensive testing instructions.
 
 ### Test Scripts
 
@@ -339,9 +341,7 @@ For detailed deployment instructions, see:
 - `scripts/seedApiKeyProduction.js` - Create API keys
 
 For testing documentation, see:
-- [QUICK_TEST_START.md](./QUICK_TEST_START.md)
-- [LOCAL_TESTING_GUIDE.md](./LOCAL_TESTING_GUIDE.md)
-- [TESTING_SUMMARY.md](./TESTING_SUMMARY.md)
+- [LOCAL_TESTING_GUIDE.md](./docs/LOCAL_TESTING_GUIDE.md)
 
 ---
 
@@ -399,7 +399,7 @@ npm run build
 
 ### Environment Variables
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for a complete list of required environment variables.
+See [ARCHITECTURE.md](./docs/ARCHITECTURE.md) for a complete list of required environment variables.
 
 ### Code Style
 
@@ -412,25 +412,19 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for a complete list of required environ
 ## 📚 Documentation
 
 ### Setup & Configuration
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture overview
-- [STORAGE_ARCHITECTURE.md](./STORAGE_ARCHITECTURE.md) - Storage design
-- [STORAGE_CONFIGURATION_GUIDE.md](./STORAGE_CONFIGURATION_GUIDE.md) - Storage setup
-- [AZURE_FUNCTIONS_SETUP.md](./AZURE_FUNCTIONS_SETUP.md) - Azure setup
+- [ARCHITECTURE.md](./docs/ARCHITECTURE.md) - System architecture overview
+- [STORAGE_ARCHITECTURE.md](./docs/STORAGE_ARCHITECTURE.md) - Storage design
+- [STORAGE_CONFIGURATION_GUIDE.md](./docs/STORAGE_CONFIGURATION_GUIDE.md) - Storage setup
+- [AZURE_FUNCTIONS_SETUP.md](./docs/AZURE_FUNCTIONS_SETUP.md) - Azure setup
 
 ### Security
-- [SECURITY_ENHANCEMENT_PLAN.md](./SECURITY_ENHANCEMENT_PLAN.md) - Security roadmap
-- [QUICK_WINS_IMPLEMENTATION.md](./QUICK_WINS_IMPLEMENTATION.md) - Security features
+- [SECURITY_ENHANCEMENT_PLAN.md](./docs/SECURITY_ENHANCEMENT_PLAN.md) - Security roadmap
 
 ### Deployment
-- [PRE_DEPLOYMENT_CHECKLIST.md](./PRE_DEPLOYMENT_CHECKLIST.md) - Deployment checklist
-- [GITHUB_ACTIONS_DEPLOYMENT_FIX.md](./GITHUB_ACTIONS_DEPLOYMENT_FIX.md) - Deployment guide
-- [FRONTEND_ENV_SETUP.md](./FRONTEND_ENV_SETUP.md) - Frontend setup
-- [GITHUB_SECRETS_CHECKLIST.md](./GITHUB_SECRETS_CHECKLIST.md) - Secrets checklist
+- [FRONTEND_ENV_SETUP.md](./docs/FRONTEND_ENV_SETUP.md) - Frontend setup
 
 ### Testing
-- [LOCAL_TESTING_GUIDE.md](./LOCAL_TESTING_GUIDE.md) - Comprehensive testing guide
-- [QUICK_TEST_START.md](./QUICK_TEST_START.md) - Quick start testing
-- [TESTING_SUMMARY.md](./TESTING_SUMMARY.md) - Test results
+- [LOCAL_TESTING_GUIDE.md](./docs/LOCAL_TESTING_GUIDE.md) - Comprehensive testing guide
 
 ---
 
@@ -448,7 +442,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
 ---
 

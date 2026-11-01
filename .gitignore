@@ -17,3 +17,9 @@ functions/package-lock.json
 *.zip
 functionapp.zip
 
+
+# Local emulator state
+.azurite/
+__azurite_*
+AzuriteConfig
+.DS_Store
