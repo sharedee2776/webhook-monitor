@@ -4,7 +4,7 @@
 
 **Who it's for:** developers and small teams who depend on webhooks from services such as Stripe or GitHub and need to see what arrived, what failed and when an endpoint goes quiet.
 
-**Status:** personal project. See [ROADMAP.md](./ROADMAP.md) for the work ahead. There is no automated test suite yet; `test-now.sh` and `test-security.js` are manual smoke tests against a running instance.
+**Status:** personal project, currently offline because its Azure credits ran out. It still runs locally, and the deploy workflows are manual-only until it's hosted again. See [ROADMAP.md](./ROADMAP.md) for the work ahead. There is no automated test suite yet; `test-now.sh` and `test-security.js` are manual smoke tests against a running instance.
 
 [![Azure Functions](https://img.shields.io/badge/Azure-Functions-0062AD?logo=azure-functions)](https://azure.microsoft.com/services/functions/)
 [![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react)](https://reactjs.org/)

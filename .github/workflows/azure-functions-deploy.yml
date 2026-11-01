@@ -1,13 +1,7 @@
 name: Deploy Azure Functions
 
+# Manual only while the Azure service is offline.
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'functions/**'
-      - 'src/**'
-      - '.github/workflows/azure-functions-deploy.yml'
   workflow_dispatch:
 
 env:
